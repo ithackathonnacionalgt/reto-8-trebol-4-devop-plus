@@ -1,0 +1,22 @@
+[
+  {
+    "source": "AGN",
+    "sourceType": "news",
+    "originalUrl": "https://agn.gt/noticia/uno",
+    "sourceId": "agn-uno",
+    "publishedAt": "2026-09-10T08:00:00Z",
+    "extractedAt": "2026-09-10T12:00:00Z",
+    "rawTitle": "Información pública para la ciudadanía",
+    "rawContent": "La institución informó sobre una nueva medida para la ciudadanía."
+  },
+  {
+    "source": "SEGEPLAN",
+    "sourceType": "announcement",
+    "originalUrl": "https://segeplan.gob.gt/convocatoria/dos",
+    "sourceId": "segeplan-dos",
+    "publishedAt": "2026-09-10T09:00:00Z",
+    "extractedAt": "2026-09-10T12:00:00Z",
+    "rawTitle": "Convocatoria de apoyo",
+    "rawContent": "Se abrió una convocatoria de apoyo para personas guatemaltecas."
+  }
+]
