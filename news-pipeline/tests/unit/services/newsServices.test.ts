@@ -65,6 +65,7 @@ describe("news services", () => {
         source: "AGN",
         sourceType: "news",
         originalUrl: "https://agn.gt/news/accepted",
+        imageUrl: "https://agn.gt/media/accepted.jpg",
         extractedAt: "2026-09-10T12:00:00Z",
         rawContent: "accepted",
       },
@@ -97,6 +98,11 @@ describe("news services", () => {
       news: [{ source: "AGN", categoryId: "social_programs" }],
       irrelevantCount: 1,
       failedCount: 1,
+    });
+    await expect(
+      processCandidates(candidates.slice(0, 1), processor, logger()),
+    ).resolves.toMatchObject({
+      news: [{ imageUrl: "https://agn.gt/media/accepted.jpg" }],
     });
   });
 

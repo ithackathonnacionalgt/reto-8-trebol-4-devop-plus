@@ -29,7 +29,7 @@ export async function processCandidates(
         continue;
       }
 
-      news.push({
+      const newsItem: NewsItem = {
         id: buildNewsId(candidate),
         originalUrl: candidate.originalUrl,
         source: candidate.source,
@@ -43,7 +43,9 @@ export async function processCandidates(
           es: { ...result.data.content.es },
           quc: { ...result.data.content.quc },
         },
-      });
+      };
+      if (candidate.imageUrl !== undefined) newsItem.imageUrl = candidate.imageUrl;
+      news.push(newsItem);
     } catch (error) {
       failedCount += 1;
       logger.error("No fue posible procesar una noticia después de los reintentos", {

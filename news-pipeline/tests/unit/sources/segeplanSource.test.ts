@@ -22,6 +22,7 @@ describe("parseSegeplanListing", () => {
       originalUrl: "https://portal.segeplan.gob.gt/segeplan?p=15105",
       sourceId: "post-15105",
       publishedAt: "2026-04-15T00:00:00.000Z",
+      imageUrl: "https://portal.segeplan.gob.gt/media/becas.jpg",
       rawTitle: "SEGEPLAN anuncia convocatoria de becas",
     });
     expect(candidates[1]?.originalUrl).toBe(

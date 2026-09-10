@@ -81,6 +81,8 @@ export function parseSegeplanListing(
       rawTitle: title,
       rawContent: rawContent || title,
     };
+    const imageUrl = extractImageUrl(block, originalUrl);
+    if (imageUrl !== undefined) candidate.imageUrl = imageUrl;
     const sourceId = sourceIdFromUrl(originalUrl);
     if (sourceId !== undefined) {
       candidate.sourceId = sourceId;
@@ -97,6 +99,16 @@ export function parseSegeplanListing(
   }
 
   return candidates;
+}
+
+function extractImageUrl(block: string, articleUrl: string): string | undefined {
+  const match = /<img\b[^>]*(?:src|data-src)\s*=\s*["']([^"']+)["'][^>]*>/i.exec(block);
+  if (match?.[1] === undefined) return undefined;
+  try {
+    return normalizeUrl(new URL(match[1], articleUrl).toString());
+  } catch {
+    return undefined;
+  }
 }
 
 interface HeadingLink {

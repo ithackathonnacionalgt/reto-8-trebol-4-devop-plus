@@ -19,6 +19,7 @@ describe("parseAgnListing", () => {
       originalUrl: "https://agn.gt/presidente-firma-agenda-territorial",
       sourceId: "presidente-firma-agenda-territorial",
       publishedAt: "2026-09-10T00:00:00.000Z",
+      imageUrl: "https://agn.gt/media/agenda.jpg",
       rawTitle: "Presidente firma agenda territorial",
     });
     expect(candidates[1]?.originalUrl).toBe("https://agn.gt/medidas-para-la-poblacion");
