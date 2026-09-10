@@ -1,0 +1,20 @@
+{
+  "relevant": true,
+  "data": {
+    "categoryId": "education_scholarships",
+    "tags": ["becas", "universidad"],
+    "urgent": false,
+    "content": {
+      "es": {
+        "title": "Nueva convocatoria de becas",
+        "summary": "Se anunció una convocatoria para estudios universitarios.",
+        "citizenAction": "Consultar los requisitos y postular antes de la fecha límite."
+      },
+      "quc": {
+        "title": "K'ak' taqanik rech tob'anem tijonem",
+        "summary": "K'o jun k'ak' taqanik rech tijonem.",
+        "citizenAction": "Chawila' ri taq rajawaxik."
+      }
+    }
+  }
+}

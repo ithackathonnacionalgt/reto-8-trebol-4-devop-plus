@@ -23,7 +23,7 @@ Este documento divide la implementación descrita en `estructura-pipeline-notici
 - [x] Hito 4 — Acceso HTTP y normalización para scraping
 - [x] Hito 5 — Abstracción de fuentes, registro y fuente simulada
 - [x] Hito 6 — Identidad y deduplicación determinista
-- [ ] Hito 7 — Contrato, prompts y validación de IA
+- [x] Hito 7 — Contrato, prompts y validación de IA
 - [ ] Hito 8 — Integración con DeepSeek
 - [ ] Hito 9 — Persistencia local y Cloudflare R2
 - [ ] Hito 10 — Servicios de procesamiento y consolidación
