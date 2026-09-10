@@ -29,7 +29,7 @@ Este documento divide la implementación descrita en `estructura-pipeline-notici
 - [x] Hito 10 — Servicios de procesamiento y consolidación
 - [x] Hito 11 — Orquestador, dry run y ejecutable batch
 - [x] Hito 12 — Fuente real de AGN
-- [ ] Hito 13 — Fuente real de SEGEPLAN
+- [x] Hito 13 — Fuente real de SEGEPLAN
 - [ ] Hito 14 — Pruebas integrales y comportamiento ante fallos
 - [ ] Hito 15 — Docker y operación en Raspberry Pi
 - [ ] Hito 16 — Cierre, documentación y aceptación final

@@ -6,6 +6,7 @@ import { requireDeepSeekConfig, requireR2Config, loadEnvironmentConfig } from ".
 import { runPipeline, type PipelineDependencies } from "./app/runPipeline.js";
 import { AgnNewsSource } from "./sources/providers/agnSource.js";
 import { MockNewsSource } from "./sources/providers/mockSource.js";
+import { SegeplanNewsSource } from "./sources/providers/segeplanSource.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
 import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
@@ -20,16 +21,7 @@ export function createDependencies(): PipelineDependencies {
   const previewStorage = new LocalNewsStorage(config.outputPreviewPath);
   const sources = new SourceRegistry(
     config.nodeEnv === "production"
-      ? [
-          new AgnNewsSource(new NativeHttpClient(), {
-            fetchOptions: {
-              timeoutMs: config.scraper.timeoutMs,
-              userAgent: config.scraper.userAgent,
-              maxRetries: config.scraper.maxRetries,
-              delayMs: config.scraper.delayMs,
-            },
-          }),
-        ]
+      ? [...createProductionSources(config)]
       : [new MockNewsSource("MOCK")],
   );
 
@@ -45,6 +37,20 @@ export function createDependencies(): PipelineDependencies {
     scraperDelayMs: config.scraper.delayMs,
     dryRun: config.dryRun,
   };
+}
+
+function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig>) {
+  const fetchOptions = {
+    timeoutMs: config.scraper.timeoutMs,
+    userAgent: config.scraper.userAgent,
+    maxRetries: config.scraper.maxRetries,
+    delayMs: config.scraper.delayMs,
+  };
+  const client = new NativeHttpClient();
+  return [
+    new AgnNewsSource(client, { fetchOptions }),
+    new SegeplanNewsSource(client, { fetchOptions }),
+  ];
 }
 
 export async function main(): Promise<void> {
