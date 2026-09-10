@@ -22,7 +22,7 @@ const currentLang = getLangFromUrl(Astro.url);
   >
     <div class="relative w-full h-full flex items-center justify-center pointer-events-none p-1">
       <img
-        src="/icono-idioma.jpg"
+        src="/icono-idioma.png"
         alt="Seleccionar idioma (A 文)"
         class="w-full h-full object-contain rounded-2xl dark:invert dark:contrast-125 transition-all duration-200"
       />
@@ -44,11 +44,12 @@ const currentLang = getLangFromUrl(Astro.url);
     <div class="py-1">
       {Object.entries(languages).map(([code, langData]) => {
         const isSelected = currentLang === code;
-        const targetSearchUrl = code === defaultLang ? '/buscar' : `/${code}/buscar`;
+        const targetUrl = code === defaultLang ? '/categorias' : `/${code}/categorias`;
 
         return (
           <a
-            href={targetSearchUrl}
+            href={targetUrl}
+            data-lang={code}
             role="menuitem"
             class="flex items-center justify-between px-4 py-2.5 text-base font-bold text-neutral-800 dark:text-neutral-200 hover:bg-sky-50 dark:hover:bg-neutral-700 transition-colors group"
           >
@@ -94,6 +95,25 @@ const currentLang = getLangFromUrl(Astro.url);
         langMenu.classList.add('hidden');
         langBtn.setAttribute('aria-expanded', 'false');
       }
+    });
+
+    // Si ya configuró sus categorías anteriormente, ir directo a buscar; si es primera vez, ir a categorías
+    const menuLinks = langMenu.querySelectorAll('a[data-lang]');
+    menuLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        try {
+          const saved = localStorage.getItem('todomigob_categories');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              e.preventDefault();
+              const langCode = link.getAttribute('data-lang');
+              const searchBase = langCode === 'es' ? '/buscar' : `/${langCode}/buscar`;
+              window.location.href = `${searchBase}?cats=${encodeURIComponent(parsed.join(','))}`;
+            }
+          }
+        } catch (err) {}
+      });
     });
   }
 </script>
