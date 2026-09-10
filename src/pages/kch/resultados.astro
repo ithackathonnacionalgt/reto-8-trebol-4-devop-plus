@@ -1,15 +1,16 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { useTranslations, getLocalizedPath } from '../../i18n/utils';
-import noticiasData from '../../../public/noticias.json';
+import { getNoticiasData } from '../../services/noticias';
 
 const t = useTranslations('kch');
 const searchUrl = getLocalizedPath('/buscar', 'kch');
 const categoriesUrl = getLocalizedPath('/categorias', 'kch');
 const detailBaseUrl = getLocalizedPath('/detalle', 'kch');
 const currentSearch = Astro.url.searchParams.get('q') || '';
-const categorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
-const noticias = noticiasData.news || noticiasData.noticias || [];
+const noticiasData = await getNoticiasData();
+const categorias = noticiasData.availableCategories || [];
+const noticias = noticiasData.news || [];
 ---
 
 <Layout title="K'ulmatajem · TODOMIGOB">

@@ -1,14 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getLocalizedPath } from '../i18n/utils';
-import noticiasData from '../../public/noticias.json';
+import { getNoticiasData } from '../services/noticias';
 
 const resultsUrl = getLocalizedPath('/resultados', 'es');
 const currentQuery = Astro.url.searchParams.get('q') || '';
 const backUrl = currentQuery ? `${resultsUrl}?q=${encodeURIComponent(currentQuery)}` : resultsUrl;
 
-const rawCategorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
-const rawNoticias = noticiasData.news || noticiasData.noticias || [];
+const noticiasData = await getNoticiasData();
+const rawCategorias = noticiasData.availableCategories || [];
+const rawNoticias = noticiasData.news || [];
 const defaultItem = rawNoticias[0];
 const defaultTitle = defaultItem?.content?.es?.title || defaultItem?.contenido?.es?.titulo || '';
 const defaultSummary = defaultItem?.content?.es?.summary || defaultItem?.contenido?.es?.resumen || '';

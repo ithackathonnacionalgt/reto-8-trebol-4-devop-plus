@@ -62,16 +62,17 @@ export interface NoticiasData {
 
 let cachedData: NoticiasData | null = null;
 
+export const R2_NOTICIAS_URL = 'https://pub-b246f9594b0f4cb5960b8f6ec9f1ba2b.r2.dev/noticias.json';
+
 /**
  * Obtiene el origen de noticias.json.
- * Soporta configuración de Bucket de Cloudflare R2 mediante PUBLIC_NOTICIAS_URL
- * o ruta local por defecto /noticias.json
+ * Usa por defecto el bucket de Cloudflare R2 con fallback a variable de entorno
  */
 export function getNoticiasEndpoint(): string {
   if (typeof window !== 'undefined' && (window as any).PUBLIC_NOTICIAS_URL) {
     return (window as any).PUBLIC_NOTICIAS_URL;
   }
-  return import.meta.env.PUBLIC_NOTICIAS_URL || '/noticias.json';
+  return import.meta.env.PUBLIC_NOTICIAS_URL || R2_NOTICIAS_URL;
 }
 
 /**
@@ -155,10 +156,10 @@ export function normalizeNoticiasData(raw: any): NoticiasData {
 }
 
 /**
- * Carga única en memoria (1 solo fetch) para el frontend estático
+ * Carga noticias desde Cloudflare R2 con soporte para recarga fresca
  */
-export async function loadNoticias(): Promise<NoticiasData> {
-  if (cachedData) {
+export async function loadNoticias(forceReload = false): Promise<NoticiasData> {
+  if (cachedData && !forceReload) {
     return cachedData;
   }
 
@@ -167,6 +168,7 @@ export async function loadNoticias(): Promise<NoticiasData> {
     headers: {
       'Accept': 'application/json',
     },
+    cache: 'no-cache'
   });
 
   if (!res.ok) {
@@ -197,3 +199,32 @@ export function getCategoryName(cat: CategoriaItem, lang: string): string {
   }
   return cat.name || cat.nombre || '';
 }
+
+/**
+ * Obtiene los datos de noticias priorizando Cloudflare R2 con fallback local
+ */
+export async function getNoticiasData(): Promise<NoticiasData> {
+  try {
+    const res = await fetch(R2_NOTICIAS_URL, { cache: 'no-cache' });
+    if (res.ok) {
+      const raw = await res.json();
+      return normalizeNoticiasData(raw);
+    }
+  } catch (e) {
+    console.warn('Fallo al obtener noticias de R2, usando fallback:', e);
+  }
+
+  try {
+    // Fallback dinámico para entorno Node / Build
+    const localData = await import('../../public/noticias.json');
+    return normalizeNoticiasData(localData.default || localData);
+  } catch (e) {
+    return {
+      lastUpdatedAt: new Date().toISOString(),
+      totalNews: 0,
+      availableCategories: [],
+      news: []
+    };
+  }
+}
+

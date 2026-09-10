@@ -1,10 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getLocalizedPath } from '../i18n/utils';
-import noticiasData from '../../public/noticias.json';
+import { getNoticiasData } from '../services/noticias';
 
 const searchBaseUrl = getLocalizedPath('/buscar', 'es');
-const categorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles;
+const noticiasData = await getNoticiasData();
+const categorias = noticiasData.availableCategories || [];
 ---
 
 <Layout title="Seleccionar Categorías · TODOMIGOB">

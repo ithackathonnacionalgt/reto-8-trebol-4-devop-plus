@@ -1,14 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getLocalizedPath } from '../i18n/utils';
-import noticiasData from '../../public/noticias.json';
+import { getNoticiasData } from '../services/noticias';
 
 const searchUrl = getLocalizedPath('/buscar', 'es');
 const categoriesUrl = getLocalizedPath('/categorias', 'es');
 const detailBaseUrl = getLocalizedPath('/detalle', 'es');
 const currentSearch = Astro.url.searchParams.get('q') || '';
-const categorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
-const noticias = noticiasData.news || noticiasData.noticias || [];
+const noticiasData = await getNoticiasData();
+const categorias = noticiasData.availableCategories || [];
+const noticias = noticiasData.news || [];
 ---
 
 <Layout title="Resultados · TODOMIGOB">

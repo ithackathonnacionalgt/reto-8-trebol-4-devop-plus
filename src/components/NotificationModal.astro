@@ -1,10 +1,11 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
-import noticiasData from '../../public/noticias.json';
+import { getNoticiasData } from '../services/noticias';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const rawCategories = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
+const noticiasData = await getNoticiasData();
+const rawCategories = noticiasData.availableCategories || [];
 ---
 
 <!-- Modal Accesible de Notificaciones por Correo -->
