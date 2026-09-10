@@ -1,22 +1,42 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { useTranslations, getLocalizedPath } from '../../i18n/utils';
+import noticiasData from '../../../public/noticias.json';
 
 const t = useTranslations('kch');
 const resultsUrl = getLocalizedPath('/resultados', 'kch');
+const currentQuery = Astro.url.searchParams.get('q') || '';
+const backUrl = currentQuery ? `${resultsUrl}?q=${encodeURIComponent(currentQuery)}` : resultsUrl;
+
+const rawCategorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
+const rawNoticias = noticiasData.news || noticiasData.noticias || [];
+const defaultItem = rawNoticias[0];
+const defaultQuc = defaultItem?.content?.quc || defaultItem?.content?.kch || defaultItem?.content?.es || defaultItem?.contenido?.quc || defaultItem?.contenido?.es;
+const defaultTitle = defaultQuc?.title || defaultQuc?.titulo || '';
+const defaultSummary = defaultQuc?.summary || defaultQuc?.resumen || '';
+const defaultAction = defaultQuc?.citizenAction || defaultQuc?.accionCiudadana || '';
+const defaultSource = defaultItem?.source || defaultItem?.fuente || '';
+const defaultOriginalUrl = defaultItem?.originalUrl || defaultItem?.urlOriginal || '';
+const defaultTags = defaultItem?.tags || defaultItem?.etiquetas || [];
+const defaultCatId = defaultItem?.categoryId || defaultItem?.categoriaId || '';
+const defaultCatObj = rawCategorias.find((c) => c.id === defaultCatId);
+const defaultCategory = defaultCatObj?.nameKch || defaultCatObj?.nombreKch || defaultCatObj?.name || defaultCatObj?.nombre || defaultSource;
+const noticias = rawNoticias;
+const categorias = rawCategorias;
 ---
 
-<Layout title={`${t('detail.title')} · TODOMIGOB`}>
+<Layout title={`${defaultTitle} · TODOMIGOB`}>
   <!-- Vista 4: Detalle (K'iche') -->
-  <section class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 flex-1">
+  <section class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col justify-center">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-start">
       
       <!-- Columna Izquierda -->
       <div class="flex flex-col">
         <div class="mb-3">
           <a
-            href={resultsUrl}
+            id="detail-back-btn"
+            href={backUrl}
             class="inline-flex w-10 h-10 rounded-full border-2 border-[#4997D0] items-center justify-center text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all cursor-pointer bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 group"
             aria-label={t('detail.back')}
             title={t('detail.back')}
@@ -27,24 +47,44 @@ const resultsUrl = getLocalizedPath('/resultados', 'kch');
           </a>
         </div>
 
-        <h1 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">
-          {t('detail.title')}
+        <h1 id="detail-title" class="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight leading-tight">
+          {defaultTitle}
         </h1>
-        <p class="mt-1 text-lg sm:text-xl font-bold text-[#4997D0] dark:text-sky-300">
-          {t('detail.subtitle')}
+        <p id="detail-source" class="mt-1 text-base sm:text-lg font-bold text-[#4997D0] dark:text-sky-300">
+          {defaultCategory} · {defaultSource}
         </p>
 
-        <div class="mt-4 text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed text-justify">
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        <!-- Bloque de texto descriptivo y acción ciudadana (tipografía ampliada para personas con baja visión) -->
+        <div class="mt-5 text-base sm:text-base text-neutral-800 dark:text-neutral-200 leading-relaxed text-left space-y-4">
+          <p id="detail-content" class="text-base sm:text-base leading-relaxed">
+            {defaultSummary}
           </p>
+          {defaultAction && (
+            <div id="detail-action-container" class="p-4 rounded-xl border-2 border-[#4997D0]/40 bg-sky-50/50 dark:bg-neutral-800/60">
+              <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#4997D0] dark:text-sky-300 mb-1.5">
+                Chak rech le Winaq / Jas kab'ano
+              </h2>
+              <p id="detail-action" class="text-sm sm:text-base text-neutral-900 dark:text-neutral-100 leading-relaxed font-medium">
+                {defaultAction}
+              </p>
+            </div>
+          )}
         </div>
 
-        <div class="mt-6 flex flex-col items-start gap-1.5 text-sm font-bold text-[#4997D0] dark:text-sky-300">
-          <a href="#sitio" class="hover:underline">{t('detail.link.site')}</a>
-          <a href="#contacto" class="hover:underline">{t('detail.link.contact')}</a>
-          <a href="#ubicacion" class="hover:underline">{t('detail.link.location')}</a>
-          <a href="#mas" class="mt-3 text-xs font-normal text-neutral-500 dark:text-neutral-400 hover:underline">{t('detail.show_more')}</a>
+        <!-- Enlaces y etiquetas solo con información disponible -->
+        <div class="mt-6 flex flex-col items-start gap-2 text-base font-bold text-[#4997D0] dark:text-sky-300">
+          {defaultOriginalUrl && (
+            <a id="detail-site-link" href={defaultOriginalUrl} target="_blank" rel="noopener noreferrer" class="hover:underline inline-flex items-center gap-1">
+              {t('detail.link.site')} ({defaultSource}) →
+            </a>
+          )}
+          <div id="detail-tags" class="mt-2 flex flex-wrap gap-2">
+            {defaultTags.map((tag: string) => (
+              <span class="px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-[#4997D0]/40 text-[#4997D0] dark:text-sky-300">
+                #{tag}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -61,3 +101,84 @@ const resultsUrl = getLocalizedPath('/resultados', 'kch');
     </div>
   </section>
 </Layout>
+
+<!-- Script dinámico en cliente para resolver el ?id= y ?q= de la URL -->
+<script is:inline define:vars={{ noticias, categorias, resultsUrl }}>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const qParam = params.get('q');
+
+  // Configurar botón volver para preservar el término de búsqueda
+  const backBtn = document.getElementById('detail-back-btn');
+  if (backBtn) {
+    if (qParam) {
+      backBtn.href = `${resultsUrl}?q=${encodeURIComponent(qParam)}`;
+    }
+    backBtn.addEventListener('click', (e) => {
+      if (window.history.length > 1 && document.referrer && document.referrer.includes('/resultados')) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+  }
+
+  if (id) {
+    const item = noticias.find((n) => n.id === id);
+    if (item) {
+      const catId = item.categoryId || item.categoriaId;
+      const cat = categorias.find((c) => c.id === catId);
+      const catName = cat ? (cat.nameKch || cat.nombreKch || cat.name || cat.nombre) : '';
+      const qucContent = item.content?.quc || item.content?.kch || item.content?.es || item.contenido?.quc || item.contenido?.es || {};
+      
+      const titleEl = document.getElementById('detail-title');
+      const sourceEl = document.getElementById('detail-source');
+      const contentEl = document.getElementById('detail-content');
+      const actionEl = document.getElementById('detail-action');
+      const actionContainer = document.getElementById('detail-action-container');
+      const siteLinkEl = document.getElementById('detail-site-link');
+      const tagsEl = document.getElementById('detail-tags');
+
+      const title = qucContent.title || qucContent.titulo || '';
+      const summary = qucContent.summary || qucContent.resumen || '';
+      const action = qucContent.citizenAction || qucContent.accionCiudadana || '';
+      const source = item.source || item.fuente || '';
+      const originalUrl = item.originalUrl || item.urlOriginal || '';
+      const tags = item.tags || item.etiquetas || [];
+
+      if (titleEl) titleEl.textContent = title;
+      if (sourceEl) sourceEl.textContent = `${catName} · ${source}`;
+      if (contentEl) contentEl.textContent = summary;
+      if (actionEl && action) {
+        actionEl.textContent = action;
+        if (actionContainer) actionContainer.classList.remove('hidden');
+      } else if (actionContainer) {
+        actionContainer.classList.add('hidden');
+      }
+
+      if (siteLinkEl) {
+        if (originalUrl) {
+          siteLinkEl.href = originalUrl;
+          siteLinkEl.textContent = `Patan Ja (${source})`;
+          siteLinkEl.classList.remove('hidden');
+        } else {
+          siteLinkEl.classList.add('hidden');
+        }
+      }
+
+      if (tagsEl) {
+        tagsEl.innerHTML = '';
+        if (tags && tags.length > 0) {
+          tags.forEach((tag) => {
+            const span = document.createElement('span');
+            span.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium border border-[#4997D0]/40 text-[#4997D0] dark:text-sky-300';
+            span.textContent = '#' + tag;
+            tagsEl.appendChild(span);
+          });
+          tagsEl.classList.remove('hidden');
+        } else {
+          tagsEl.classList.add('hidden');
+        }
+      }
+    }
+  }
+</script>

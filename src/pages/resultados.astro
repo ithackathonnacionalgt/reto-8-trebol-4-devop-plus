@@ -1,53 +1,478 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getLocalizedPath } from '../i18n/utils';
+import noticiasData from '../../public/noticias.json';
 
-const detailUrl = getLocalizedPath('/detalle', 'es');
+const searchUrl = getLocalizedPath('/buscar', 'es');
+const categoriesUrl = getLocalizedPath('/categorias', 'es');
+const detailBaseUrl = getLocalizedPath('/detalle', 'es');
 const currentSearch = Astro.url.searchParams.get('q') || '';
+const categorias = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
+const noticias = noticiasData.news || noticiasData.noticias || [];
 ---
 
 <Layout title="Resultados · TODOMIGOB">
-  <!-- Vista 3: Resultados de Búsqueda -->
-  <section class="flex-1 flex flex-col items-center justify-center min-h-[60vh] px-4 py-8 max-w-xl mx-auto w-full">
-    <!-- Panel rectangular con 5 líneas de 'Coincidencias - resumen' -->
-    <div class="w-full border-2 border-[#4997D0] rounded-xl p-5 sm:p-7 bg-white dark:bg-[#202020] mb-6 shadow-sm">
-      <div class="space-y-3">
-        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
-          Coincidencias - resumen
-        </a>
-        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
-          Coincidencias - resumen
-        </a>
-        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
-          Coincidencias - resumen
-        </a>
-        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
-          Coincidencias - resumen
-        </a>
-        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
-          Coincidencias - resumen
-        </a>
+  <!-- Vista 4: Resultados de Búsqueda con Motor de Relevancia 100% Frontend -->
+  <section class="flex-1 flex flex-col items-center px-4 py-4 sm:py-6 max-w-2xl mx-auto w-full">
+    
+    <!-- Barra superior: Botón Volver y Botón de Preferencias -->
+    <div class="w-full flex items-center justify-between mb-3 sm:mb-4">
+      <a
+        href={searchUrl}
+        class="inline-flex w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#4997D0] items-center justify-center text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all cursor-pointer bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 group"
+        aria-label="Volver a Buscar"
+        title="Volver a Buscar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+
+      <!-- Botón superior de Preferencias -->
+      <a
+        href={categoriesUrl}
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[#4997D0] text-sm font-bold text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
+        title="Configurar preferencias de categorías"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+        <span>Preferencias</span>
+      </a>
+    </div>
+
+    <!-- Panel rectangular con lista de resultados clasificados por relevancia -->
+    <div class="w-full border-2 border-[#4997D0] rounded-2xl p-4 sm:p-6 bg-white dark:bg-[#202020] mb-5 shadow-sm">
+      <div id="results-container" class="space-y-3.5">
+        {noticias.map((item) => {
+          const catId = item.categoryId || item.categoriaId;
+          const cat = categorias.find((c) => c.id === catId);
+          const catName = cat?.name || cat?.nombre || item.source || item.fuente || '';
+          const title = item.content?.es?.title || item.contenido?.es?.titulo || '';
+          const summary = item.content?.es?.summary || item.contenido?.es?.resumen || '';
+          const tags = item.tags || item.etiquetas || [];
+          const source = item.source || item.fuente || '';
+          const isUrgent = item.urgent !== undefined ? item.urgent : (item.urgente || false);
+          return (
+            <a
+              href={currentSearch ? `${detailBaseUrl}?id=${item.id}&q=${encodeURIComponent(currentSearch)}` : `${detailBaseUrl}?id=${item.id}`}
+              data-id={item.id}
+              data-category={catId}
+              data-category-name={catName}
+              data-source={source}
+              data-urgent={isUrgent ? 'true' : 'false'}
+              data-published={item.publishedAt || item.fechaPublicacion || ''}
+              data-tags={tags.join(' ')}
+              data-title={title}
+              data-summary={summary}
+              data-raw-title={title}
+              data-raw-summary={summary}
+              class="result-card block p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:border-[#4997D0] dark:hover:border-[#4997D0] hover:bg-sky-50/50 dark:hover:bg-neutral-800/60 transition-colors group cursor-pointer"
+            >
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="text-xs sm:text-sm font-bold text-[#4997D0] dark:text-sky-400">
+                  {catName}
+                </span>
+                {isUrgent && (
+                  <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-300">
+                    Urgente
+                  </span>
+                )}
+              </div>
+              <h2 class="result-title text-lg sm:text-xl font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
+                {title}
+              </h2>
+              <p class="result-summary text-sm sm:text-base text-neutral-700 dark:text-neutral-300 mt-1.5 leading-relaxed line-clamp-3 sm:line-clamp-2">
+                {summary}
+              </p>
+            </a>
+          );
+        })}
+      </div>
+
+      <!-- Estado vacío si no hay coincidencias -->
+      <div id="empty-state" class="hidden py-8 text-center">
+        <p class="text-base font-bold text-neutral-600 dark:text-neutral-300">
+          No se encontraron coincidencias para la búsqueda.
+        </p>
       </div>
     </div>
 
     <!-- Segundo campo de búsqueda y botón -->
-    <form action="/resultados" method="GET" class="w-full flex flex-col items-center gap-4">
+    <form id="search-form" action="/resultados" method="GET" class="w-full flex flex-col items-center gap-3.5">
       <div class="w-full">
         <input
+          id="search-input"
           type="text"
           name="q"
-          defaultValue={currentSearch}
+          value={currentSearch}
           placeholder="Palabra buscada"
-          class="w-full px-4 py-3 border-2 border-[#4997D0] rounded-xl text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#4997D0] bg-white dark:bg-[#202020] shadow-xs"
+          class="w-full px-4 py-3 sm:py-3.5 border-2 border-[#4997D0] rounded-xl text-base sm:text-lg text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#4997D0] bg-white dark:bg-[#202020] shadow-xs"
         />
       </div>
 
       <button
         type="submit"
-        class="w-36 sm:w-44 py-2.5 px-6 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-lg rounded-xl transition-colors cursor-pointer shadow-md active:translate-y-0.5"
+        class="w-40 sm:w-48 py-3 px-6 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-base sm:text-lg rounded-xl transition-colors cursor-pointer shadow-md active:translate-y-0.5"
       >
         Buscar
       </button>
     </form>
+
+    <!-- Área de 'Noticias sugeridas por tus preferencias' (abajo del buscador) -->
+    <div id="suggested-section" class="w-full mt-6 pt-5 border-t border-neutral-200 dark:border-neutral-800">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 id="suggested-title" class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
+            Temas recomendados según tus preferencias
+          </h3>
+          <p id="suggested-desc" class="text-sm text-neutral-600 dark:text-neutral-400">
+            Noticias y trámites de tus áreas de interés
+          </p>
+        </div>
+      </div>
+
+      <div id="suggested-container" class="space-y-3">
+        {noticias.map((item) => {
+          const catId = item.categoryId || item.categoriaId;
+          const cat = categorias.find((c) => c.id === catId);
+          const catName = cat?.name || cat?.nombre || item.source || item.fuente || '';
+          const title = item.content?.es?.title || item.contenido?.es?.titulo || '';
+          const summary = item.content?.es?.summary || item.contenido?.es?.resumen || '';
+          const tags = item.tags || item.etiquetas || [];
+          return (
+            <a
+              href={currentSearch ? `${detailBaseUrl}?id=${item.id}&q=${encodeURIComponent(currentSearch)}` : `${detailBaseUrl}?id=${item.id}`}
+              data-id={item.id}
+              data-category={catId}
+              data-title={title}
+              data-summary={summary}
+              data-tags={tags.join(' ')}
+              class="suggested-card block p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:border-[#4997D0] dark:hover:border-[#4997D0] bg-white dark:bg-[#202020] hover:bg-sky-50/50 dark:hover:bg-neutral-800/60 transition-colors group cursor-pointer"
+            >
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="text-xs sm:text-sm font-bold text-[#4997D0] dark:text-sky-400">
+                  {catName}
+                </span>
+                <span class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 group-hover:text-[#4997D0] dark:group-hover:text-sky-300 transition-colors font-medium">
+                  Ver detalle →
+                </span>
+              </div>
+              <h4 class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
+                {title}
+              </h4>
+              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1 line-clamp-2 leading-relaxed">
+                {summary}
+              </p>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
   </section>
 </Layout>
+
+<!-- Motor de búsqueda y ordenamiento por relevancia 100% en Frontend -->
+<script is:inline define:vars={{ detailBaseUrl }}>
+  const urlParams = new URLSearchParams(window.location.search);
+  const qFromUrl = (urlParams.get('q') || '').trim();
+  let preferredCats = [];
+  
+  try {
+    const saved = localStorage.getItem('todomigob_categories');
+    if (saved) {
+      preferredCats = JSON.parse(saved);
+      if (!Array.isArray(preferredCats)) preferredCats = [];
+    }
+  } catch (e) {
+    preferredCats = [];
+  }
+
+  const input = document.getElementById('search-input');
+  if (input && qFromUrl) {
+    input.value = qFromUrl;
+  }
+
+  const resultsContainer = document.getElementById('results-container');
+  const primaryCards = Array.from(document.querySelectorAll('#results-container .result-card'));
+  const suggestedCards = Array.from(document.querySelectorAll('#suggested-container .suggested-card'));
+  const emptyState = document.getElementById('empty-state');
+  const suggestedSection = document.getElementById('suggested-section');
+  const suggestedTitle = document.getElementById('suggested-title');
+  const suggestedDesc = document.getElementById('suggested-desc');
+  const form = document.getElementById('search-form');
+
+  if (suggestedTitle && suggestedDesc) {
+    if (preferredCats.length > 0) {
+      suggestedTitle.textContent = 'Temas recomendados según tus preferencias';
+      suggestedDesc.textContent = 'Noticias y trámites de tus áreas de interés';
+    } else {
+      suggestedTitle.textContent = 'Temas que te pueden interesar';
+      suggestedDesc.textContent = 'Otras áreas y avisos disponibles';
+    }
+  }
+
+  // Normalización de texto: quita tildes, comillas y pasa a minúsculas
+  function normalize(str) {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/['’`]/g, '')
+      .trim();
+  }
+
+  // Palabras vacías que no deben penalizar la cobertura semántica
+  const STOP_WORDS = new Set([
+    'de', 'la', 'el', 'en', 'y', 'a', 'los', 'las', 'un', 'una', 'unos', 'unas',
+    'del', 'al', 'por', 'para', 'con', 'se', 'su', 'lo', 'como', 'o', 'que'
+  ]);
+
+  // Distancia Levenshtein para tolerancia a errores tipográficos
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  // Resalta términos coincidentes en el texto HTML
+  function highlightText(rawText, tokens) {
+    if (!tokens || tokens.length === 0 || !rawText) return rawText;
+    const escapedTokens = tokens
+      .filter(t => t.length > 1 && !STOP_WORDS.has(t))
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (escapedTokens.length === 0) return rawText;
+    
+    const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
+    return rawText.replace(regex, '<mark class="bg-sky-100 dark:bg-sky-950 text-[#4997D0] dark:text-sky-300 px-0.5 rounded font-semibold">$1</mark>');
+  }
+
+  // Algoritmo de ponderación y relevancia multidimensional
+  function scoreCard(card, normQuery, tokens, activeTokens) {
+    if (!normQuery) return 1;
+
+    const title = card.getAttribute('data-title') || '';
+    const summary = card.getAttribute('data-summary') || '';
+    const tags = (card.getAttribute('data-tags') || '').split(/\s+/);
+    const category = card.getAttribute('data-category-name') || '';
+    const source = card.getAttribute('data-source') || '';
+    const isUrgent = card.getAttribute('data-urgent') === 'true';
+
+    const normTitle = normalize(title);
+    const normSummary = normalize(summary);
+    const normCategory = normalize(category);
+    const normSource = normalize(source);
+    const normTags = tags.map(t => normalize(t));
+
+    let score = 0;
+    let matchedCount = 0;
+
+    // 1. Frase exacta completa
+    if (normTitle.includes(normQuery)) score += 150;
+    if (normTags.some(t => t === normQuery || t.includes(normQuery))) score += 110;
+    if (normSummary.includes(normQuery)) score += 40;
+
+    // 2. Coincidencias de tokens individuales
+    const titleWords = normTitle.split(/\s+/);
+    const summaryWords = normSummary.split(/\s+/);
+
+    for (const token of activeTokens) {
+      let matched = false;
+
+      // Coincidencias en Título
+      if (titleWords.includes(token)) {
+        score += 50;
+        matched = true;
+      } else if (titleWords.some(w => w.startsWith(token))) {
+        score += 30;
+        matched = true;
+      } else if (normTitle.includes(token)) {
+        score += 15;
+        matched = true;
+      }
+
+      // Coincidencias en Etiquetas
+      if (normTags.some(t => t === token)) {
+        score += 45;
+        matched = true;
+      } else if (normTags.some(t => t.startsWith(token) || t.includes(token))) {
+        score += 25;
+        matched = true;
+      }
+
+      // Coincidencias en Fuente / Institución
+      if (normSource.includes(token)) {
+        score += 35;
+        matched = true;
+      }
+
+      // Coincidencias en Categoría
+      if (normCategory.includes(token)) {
+        score += 30;
+        matched = true;
+      }
+
+      // Coincidencias en Resumen
+      if (summaryWords.includes(token)) {
+        score += 15;
+        matched = true;
+      } else if (normSummary.includes(token)) {
+        score += 6;
+        matched = true;
+      }
+
+      // Typo tolerance si no hubo coincidencia directa
+      if (!matched && token.length >= 4) {
+        const titleTypo = titleWords.some(w => Math.abs(w.length - token.length) <= 1 && levenshtein(w, token) <= 1);
+        const tagTypo = normTags.some(t => Math.abs(t.length - token.length) <= 1 && levenshtein(t, token) <= 1);
+        if (titleTypo || tagTypo) {
+          score += 20;
+          matched = true;
+        }
+      }
+
+      if (matched) matchedCount++;
+    }
+
+    // 3. Multiplicador de cobertura completa (si tiene todos los términos buscados)
+    if (activeTokens.length > 1) {
+      const coverage = matchedCount / activeTokens.length;
+      if (coverage === 1.0) {
+        score *= 2.2;
+      } else if (coverage >= 0.5) {
+        score *= 1.3;
+      } else {
+        score *= 0.5;
+      }
+    }
+
+    // 4. Boost de urgencia
+    if (isUrgent && score > 0) {
+      score += 5;
+    }
+
+    return score;
+  }
+
+  function applyFilter() {
+    const rawQuery = (input ? input.value : qFromUrl).trim();
+    const normQuery = normalize(rawQuery);
+
+    const tokens = normQuery ? normQuery.split(/\s+/).filter(t => t.length > 0) : [];
+    const meaningfulTokens = tokens.filter(t => !STOP_WORDS.has(t) && t.length > 1);
+    const activeTokens = meaningfulTokens.length > 0 ? meaningfulTokens : tokens;
+
+    // Calcular puntaje para cada tarjeta principal
+    const scoredCards = primaryCards.map(card => {
+      const score = scoreCard(card, normQuery, tokens, activeTokens);
+      return { card, score };
+    });
+
+    // Ordenar de mayor a menor relevancia
+    scoredCards.sort((a, b) => b.score - a.score);
+
+    let primaryVisible = 0;
+    scoredCards.forEach(({ card, score }) => {
+      const titleEl = card.querySelector('.result-title');
+      const summaryEl = card.querySelector('.result-summary');
+      const rawTitle = card.getAttribute('data-raw-title') || '';
+      const rawSummary = card.getAttribute('data-raw-summary') || '';
+      const cardId = card.getAttribute('data-id');
+
+      if (cardId) {
+        card.href = rawQuery
+          ? `${detailBaseUrl}?id=${encodeURIComponent(cardId)}&q=${encodeURIComponent(rawQuery)}`
+          : `${detailBaseUrl}?id=${encodeURIComponent(cardId)}`;
+      }
+
+      if (!rawQuery) {
+        card.classList.remove('hidden');
+        primaryVisible++;
+        if (titleEl) titleEl.textContent = rawTitle;
+        if (summaryEl) summaryEl.textContent = rawSummary;
+      } else if (score > 0) {
+        card.classList.remove('hidden');
+        primaryVisible++;
+        if (titleEl) titleEl.innerHTML = highlightText(rawTitle, activeTokens);
+        if (summaryEl) summaryEl.innerHTML = highlightText(rawSummary, activeTokens);
+      } else {
+        card.classList.add('hidden');
+      }
+
+      // Re-ordenar en el DOM según el puntaje de relevancia
+      resultsContainer?.appendChild(card);
+    });
+
+    if (emptyState) {
+      emptyState.classList.toggle('hidden', primaryVisible > 0);
+    }
+
+    // Sincronizar URL limpiamente sin recargar
+    try {
+      const currentUrl = new URL(window.location.href);
+      if (rawQuery) {
+        currentUrl.searchParams.set('q', rawQuery);
+      } else {
+        currentUrl.searchParams.delete('q');
+      }
+      window.history.replaceState(null, '', currentUrl.toString());
+    } catch (e) {}
+
+    // 2. Noticias sugeridas (enfocadas exclusivamente en las preferencias)
+    let suggestedVisible = 0;
+    suggestedCards.forEach((card) => {
+      const cardCat = card.getAttribute('data-category') || '';
+      const cardId = card.getAttribute('data-id');
+      if (cardId) {
+        card.href = rawQuery
+          ? `${detailBaseUrl}?id=${encodeURIComponent(cardId)}&q=${encodeURIComponent(rawQuery)}`
+          : `${detailBaseUrl}?id=${encodeURIComponent(cardId)}`;
+      }
+
+      const matchesPreference = preferredCats.length > 0 
+        ? preferredCats.includes(cardCat)
+        : (!rawQuery);
+
+      if (matchesPreference) {
+        card.classList.remove('hidden');
+        suggestedVisible++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    if (suggestedSection) {
+      suggestedSection.classList.toggle('hidden', suggestedVisible === 0);
+    }
+  }
+
+  input?.addEventListener('input', () => {
+    applyFilter();
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    applyFilter();
+  });
+
+  applyFilter();
+</script>

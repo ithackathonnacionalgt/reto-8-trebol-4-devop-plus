@@ -1,0 +1,92 @@
+{
+  "lastUpdatedAt": "2026-09-10T21:48:42.584Z",
+  "totalNews": 2,
+  "availableCategories": [
+    {
+      "id": "education_scholarships",
+      "name": "Educación y Becas",
+      "nameKch": "Tijonem xuquje' Tob'anem"
+    },
+    {
+      "id": "health_wellbeing",
+      "name": "Salud y Prevención",
+      "nameKch": "Raxnaqil xuquje' Chajinik"
+    },
+    {
+      "id": "social_programs",
+      "name": "Apoyo Social",
+      "nameKch": "Tob'anem Tinamit"
+    },
+    {
+      "id": "procedures_services",
+      "name": "Trámites y Documentos",
+      "nameKch": "Wujil xuquje' Patan"
+    },
+    {
+      "id": "security_alerts",
+      "name": "Alertas y Emergencias",
+      "nameKch": "K'ulb'ilal xuquje' K'ulmatajem"
+    },
+    {
+      "id": "employment_development",
+      "name": "Empleo y Emprendimiento",
+      "nameKch": "Chak xuquje' K'aslemal"
+    }
+  ],
+  "news": [
+    {
+      "id": "segeplan-post-15982",
+      "originalUrl": "https://portal.segeplan.gob.gt/segeplan?p=15982",
+      "source": "SEGEPLAN",
+      "sourceType": "news",
+      "categoryId": "education_scholarships",
+      "tags": [
+        "becas",
+        "educación"
+      ],
+      "publishedAt": null,
+      "extractedAt": "2026-09-10T21:48:09.821Z",
+      "urgent": false,
+      "content": {
+        "es": {
+          "title": "SEGEPLAN inaugura la 25ª Feria Nacional de Becas 2026",
+          "summary": "La Secretaría de Planificación y Programación de la Presidencia (SEGEPLAN) llevó a cabo la edición número 25 de la Feria Nacional de Becas 2026, con el lema 'Transformando sueños en oportunidades', para dar a conocer opciones de becas y apoyo educativo.",
+          "citizenAction": "Infórmate sobre las becas disponibles, requisitos y fechas de postulación en los canales oficiales de SEGEPLAN o acude a la feria."
+        },
+        "quc": {
+          "title": "SEGEPLAN xuk'ut ri 25 Feria Nacional de Becas 2026",
+          "summary": "Ri Secretaría de Planificación y Programación de la Presidencia (SEGEPLAN) xub'an ri 25 edición rech Feria Nacional de Becas 2026, ruk' lema 'Transformando sueños en oportunidades', rech xk'utik ri toq'ob' rech tijonik chuqa' ri apoyo educativo.",
+          "citizenAction": "Chatz'eta' ri toq'ob' rech tijonik e k'o, ri requisitos chuqa' ri q'ij rech postulación pa ri canales oficiales rech SEGEPLAN o chatb'e pa ri feria."
+        }
+      }
+    },
+    {
+      "id": "agn-presupuesto-2027-asigna-q-18-mil-615-millones-a-la-salud-para-hospitales-puestos-de-atencion-y-medicamento-accesible",
+      "originalUrl": "https://agn.gt/presupuesto-2027-asigna-q-18-mil-615-millones-a-la-salud-para-hospitales-puestos-de-atencion-y-medicamento-accesible",
+      "source": "AGN",
+      "sourceType": "news",
+      "categoryId": "health_wellbeing",
+      "tags": [
+        "salud",
+        "presupuesto",
+        "hospitales",
+        "medicamentos"
+      ],
+      "publishedAt": "2026-09-10T00:00:00.000Z",
+      "extractedAt": "2026-09-10T21:48:07.078Z",
+      "urgent": false,
+      "content": {
+        "es": {
+          "title": "Presupuesto 2027 asigna Q.18 mil 615 millones a la salud para hospitales, puestos de atención y medicamento asequible",
+          "summary": "El Ministerio de Finanzas Públicas informó que el Proyecto de Presupuesto General 2027 asigna Q.18 mil 615 millones al sector salud, destinados a hospitales, puestos de atención y medicamento asequible.",
+          "citizenAction": "Consulta el proyecto de presupuesto y da seguimiento a la asignación y ejecución de los fondos para salud; exige información pública sobre hospitales, puestos de atención y acceso a medicamentos."
+        },
+        "quc": {
+          "title": "Presupuesto 2027 xya' Q.18 mil 615 millones chike hospitales, k'ojlib'al atencion, xuquje' medicamento asequible",
+          "summary": "Ri Ministerio de Finanzas Públicas (Minfin) xuk'ut chi ri Proyecto de Presupuesto General 2027 xya' Q.18 mil 615 millones pa salud, chike hospitales, k'ojlib'al atencion, xuquje' medicamento asequible.",
+          "citizenAction": "Chawila' ri proyecto de presupuesto, chatzukuj ri asignación xuquje' ri ejecución ri fondos pa salud; chak'utu' información pública chirij hospitales, k'ojlib'al atencion, xuquje' ri medicamento."
+        }
+      }
+    }
+  ]
+}

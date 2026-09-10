@@ -1,0 +1,535 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import noticiasData from '../../public/noticias.json';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const rawCategories = noticiasData.availableCategories || noticiasData.categoriasDisponibles || [];
+---
+
+<!-- Modal Accesible de Notificaciones por Correo -->
+<div
+  id="notification-modal"
+  class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-opacity duration-200 opacity-0 pointer-events-none"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="notif-modal-title"
+>
+  <div
+    id="notification-dialog"
+    class="w-full max-w-lg bg-white dark:bg-[#1f1f1f] text-neutral-900 dark:text-neutral-100 rounded-2xl border-2 border-[#4997D0] shadow-2xl p-5 sm:p-6 relative max-h-[90vh] flex flex-col overflow-hidden transition-transform duration-200 scale-95"
+  >
+    <!-- Botón Cerrar (X) -->
+    <button
+      id="notif-close-btn"
+      type="button"
+      class="absolute top-4 right-4 w-8 h-8 rounded-full border border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:border-[#4997D0] transition-colors cursor-pointer"
+      aria-label="Cerrar modal"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Encabezado del modal -->
+    <div class="pr-8 mb-4">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="inline-flex w-8 h-8 rounded-full bg-[#4997D0]/10 text-[#4997D0] dark:text-sky-300 items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </span>
+        <h2 id="notif-modal-title" class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
+          {t('notif.modal.title')}
+        </h2>
+      </div>
+      <p class="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed">
+        {t('notif.modal.subtitle')}
+      </p>
+    </div>
+
+    <!-- Mensaje de estado / Notificación toast interna -->
+    <div id="notif-alert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium border leading-relaxed" role="alert"></div>
+
+    <!-- Contenido Scrollable si excede pantalla -->
+    <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+      
+      <!-- ESTADO A: Vista de suscripción activa existente -->
+      <div id="notif-active-view" class="hidden space-y-4">
+        <div class="p-4 rounded-xl border-2 border-[#4997D0]/50 bg-sky-50/50 dark:bg-neutral-800/60">
+          <div class="flex items-center gap-2 text-[#4997D0] dark:text-sky-300 font-bold text-sm sm:text-base mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>{t('notif.active.title')}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
+            {t('notif.active.desc')}
+          </p>
+          <p id="notif-active-email" class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white mt-1 break-all"></p>
+
+          <div class="mt-3 pt-3 border-t border-[#4997D0]/20">
+            <p class="text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">
+              {t('notif.active.categories')}
+            </p>
+            <div id="notif-active-categories-list" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-2 pt-2">
+          <button
+            id="notif-btn-edit"
+            type="button"
+            class="w-full sm:flex-1 py-3 px-4 rounded-xl border-2 border-[#4997D0] text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all text-sm font-bold cursor-pointer text-center active:scale-98"
+          >
+            {t('notif.btn.edit')}
+          </button>
+          <button
+            id="notif-btn-unsubscribe"
+            type="button"
+            class="w-full sm:w-auto py-3 px-4 rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-sm font-semibold cursor-pointer text-center"
+          >
+            {t('notif.btn.cancel')}
+          </button>
+        </div>
+      </div>
+
+      <!-- ESTADO B: Formulario de Registro / Modificación -->
+      <form id="notif-form" class="space-y-4" novalidate>
+        
+        <!-- Campo Correo Electrónico -->
+        <div>
+          <label for="notif-input-email" class="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
+            {t('notif.input.label')} <span class="text-[#4997D0]">*</span>
+          </label>
+          <input
+            id="notif-input-email"
+            type="email"
+            required
+            placeholder={t('notif.input.placeholder')}
+            class="w-full px-4 py-3 text-base sm:text-lg rounded-xl border-2 border-neutral-300 dark:border-neutral-700 focus:border-[#4997D0] focus:ring-2 focus:ring-[#4997D0]/30 outline-none bg-white dark:bg-[#171717] text-neutral-900 dark:text-white transition-colors placeholder:text-neutral-400"
+          />
+        </div>
+
+        <!-- Selección de Categorías de Interés -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-bold text-neutral-800 dark:text-neutral-200">
+              {t('notif.categories.title')} <span class="text-[#4997D0]">*</span>
+            </label>
+            <button
+              id="notif-toggle-all-cats"
+              type="button"
+              class="text-xs sm:text-sm font-bold text-[#4997D0] dark:text-sky-400 hover:underline cursor-pointer"
+            >
+              Seleccionar todas
+            </button>
+          </div>
+          <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-2 leading-relaxed">
+            {t('notif.categories.help')}
+          </p>
+
+          <div id="notif-categories-pills" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {rawCategories.map((cat) => {
+              const name = lang === 'kch'
+                ? (cat.nameKch || cat.nombreKch || cat.name || cat.nombre)
+                : (cat.name || cat.nombre);
+              return (
+                <button
+                  type="button"
+                  data-category-id={cat.id}
+                  class="notif-category-pill text-left px-3.5 py-3 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 hover:border-[#4997D0] text-sm sm:text-base font-semibold transition-all cursor-pointer flex items-center justify-between gap-2"
+                >
+                  <span class="truncate">{name}</span>
+                  <span class="pill-check w-5 h-5 rounded-full border border-neutral-300 dark:border-neutral-600 flex items-center justify-center text-white shrink-0">
+                    <svg class="w-3 h-3 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <!-- Opciones de Frecuencia -->
+        <div class="pt-1">
+          <label class="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
+            {t('notif.frequency.label')}
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
+              <input type="radio" name="notif-freq" value="instant" checked class="w-4 h-4 text-[#4997D0] focus:ring-[#4997D0]" />
+              <span>{t('notif.frequency.instant')}</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
+              <input type="radio" name="notif-freq" value="weekly" class="w-4 h-4 text-[#4997D0] focus:ring-[#4997D0]" />
+              <span>{t('notif.frequency.weekly')}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pt-3 flex flex-col sm:flex-row items-center gap-2.5">
+          <button
+            id="notif-submit-btn"
+            type="submit"
+            class="w-full sm:flex-1 py-3.5 px-6 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-base sm:text-lg rounded-xl transition-all shadow-md active:translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span id="notif-submit-btn-text">{t('notif.btn.subscribe')}</span>
+            <svg id="notif-submit-spinner" class="hidden w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+          <button
+            id="notif-cancel-btn"
+            type="button"
+            class="w-full sm:w-auto py-3.5 px-6 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm font-bold transition-colors cursor-pointer"
+          >
+            {t('notif.btn.close')}
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- Lógica del Modal y Sincronización Local / Mock -->
+<script is:inline define:vars={{ lang, rawCategories }}>
+  const STORAGE_KEY = 'todomigob_notification_subscription';
+  const PREFERENCES_KEY = 'todomigob_categories';
+
+  // Textos según idioma
+  const MSG = {
+    es: {
+      success: 'Te has suscrito exitosamente a las alertas de TODOMIGOB.',
+      cancelled: 'Has cancelado tu suscripción a notificaciones.',
+      invalidEmail: 'Por favor ingresa un correo electrónico válido.',
+      noCategories: 'Selecciona al menos una categoría de interés.',
+      saving: 'Guardando...',
+      subscribe: 'Suscribirme a las alertas',
+      update: 'Actualizar suscripción',
+      selectAll: 'Seleccionar todas',
+      deselectAll: 'Deseleccionar todas',
+    },
+    kch: {
+      success: 'Xatz\'ib\'aj ab\'i\' ruk\' utzil. Kape na taq le ub\'ixik.',
+      cancelled: 'Xaq\'atej le uya\'ik ab\'i\'.',
+      invalidEmail: 'Chatz\'ib\'aj jun kematz\'ib\' che utz.',
+      noCategories: 'Cha\' k\'ate\' jun uwach patan.',
+      saving: 'Kuyuk...',
+      subscribe: 'Uya\'ik ib\' pa le ub\'ixik',
+      update: 'Uk\'exik ya\'talik',
+      selectAll: 'Ucha\'ik ronojel',
+      deselectAll: 'Uqasaxik ronojel',
+    }
+  }[lang] || {};
+
+  const modal = document.getElementById('notification-modal');
+  const dialog = document.getElementById('notification-dialog');
+  const closeBtn = document.getElementById('notif-close-btn');
+  const cancelBtn = document.getElementById('notif-cancel-btn');
+  const alertBox = document.getElementById('notif-alert');
+  const activeView = document.getElementById('notif-active-view');
+  const formView = document.getElementById('notif-form');
+  const emailInput = document.getElementById('notif-input-email');
+  const submitBtn = document.getElementById('notif-submit-btn');
+  const submitBtnText = document.getElementById('notif-submit-btn-text');
+  const submitSpinner = document.getElementById('notif-submit-spinner');
+  const activeEmailEl = document.getElementById('notif-active-email');
+  const activeCatsList = document.getElementById('notif-active-categories-list');
+  const editBtn = document.getElementById('notif-btn-edit');
+  const unsubscribeBtn = document.getElementById('notif-btn-unsubscribe');
+  const toggleAllBtn = document.getElementById('notif-toggle-all-cats');
+
+  const categoryPills = Array.from(document.querySelectorAll('.notif-category-pill'));
+  let selectedCategoryIds = new Set();
+
+  function getSavedSubscription() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.email && parsed.active) return parsed;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getPreferredCategories() {
+    try {
+      const raw = localStorage.getItem(PREFERENCES_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function showAlert(msg, isError = false) {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800', 'dark:bg-emerald-950/40', 'dark:text-emerald-300', 'dark:border-emerald-800');
+    if (isError) {
+      alertBox.classList.add('bg-red-50', 'text-red-700', 'border-red-200', 'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800');
+    } else {
+      alertBox.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'dark:bg-emerald-950/40', 'dark:text-emerald-300', 'dark:border-emerald-800');
+    }
+  }
+
+  function hideAlert() {
+    if (alertBox) alertBox.classList.add('hidden');
+  }
+
+  function updatePillStyles() {
+    categoryPills.forEach((pill) => {
+      const catId = pill.getAttribute('data-category-id');
+      const isSelected = selectedCategoryIds.has(catId);
+      const checkEl = pill.querySelector('.pill-check');
+      const checkSvg = checkEl?.querySelector('svg');
+
+      if (isSelected) {
+        pill.classList.remove('border-neutral-200', 'dark:border-neutral-700');
+        pill.classList.add('border-[#4997D0]', 'bg-sky-50/70', 'dark:bg-sky-950/30', 'text-[#4997D0]', 'dark:text-sky-300');
+        if (checkEl) {
+          checkEl.classList.add('bg-[#4997D0]', 'border-[#4997D0]');
+          checkEl.classList.remove('border-neutral-300', 'dark:border-neutral-600');
+        }
+        if (checkSvg) checkSvg.classList.remove('hidden');
+      } else {
+        pill.classList.add('border-neutral-200', 'dark:border-neutral-700');
+        pill.classList.remove('border-[#4997D0]', 'bg-sky-50/70', 'dark:bg-sky-950/30', 'text-[#4997D0]', 'dark:text-sky-300');
+        if (checkEl) {
+          checkEl.classList.remove('bg-[#4997D0]', 'border-[#4997D0]');
+          checkEl.classList.add('border-neutral-300', 'dark:border-neutral-600');
+        }
+        if (checkSvg) checkSvg.classList.add('hidden');
+      }
+    });
+
+    if (toggleAllBtn) {
+      const allSelected = categoryPills.length > 0 && selectedCategoryIds.size === categoryPills.length;
+      toggleAllBtn.textContent = allSelected ? MSG.deselectAll : MSG.selectAll;
+    }
+  }
+
+  function getCategoryName(catId) {
+    const found = rawCategories.find(c => c.id === catId);
+    if (!found) return catId;
+    if (lang === 'kch') {
+      return found.nameKch || found.nombreKch || found.name || found.nombre || catId;
+    }
+    return found.name || found.nombre || catId;
+  }
+
+  function renderView() {
+    hideAlert();
+    const sub = getSavedSubscription();
+
+    if (sub && sub.active) {
+      // Mostrar vista de suscripción activa
+      if (activeView) activeView.classList.remove('hidden');
+      if (formView) formView.classList.add('hidden');
+      if (activeEmailEl) activeEmailEl.textContent = sub.email;
+
+      if (activeCatsList) {
+        activeCatsList.innerHTML = '';
+        sub.categories.forEach(catId => {
+          const badge = document.createElement('span');
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium border border-[#4997D0]/40 text-[#4997D0] dark:text-sky-300 bg-white dark:bg-[#171717]';
+          badge.textContent = getCategoryName(catId);
+          activeCatsList.appendChild(badge);
+        });
+      }
+    } else {
+      // Mostrar formulario de nueva suscripción
+      if (activeView) activeView.classList.add('hidden');
+      if (formView) formView.classList.remove('hidden');
+
+      // Pre-llenar categorías con las preferencias del usuario o todas
+      const preferred = getPreferredCategories();
+      selectedCategoryIds.clear();
+      if (preferred.length > 0) {
+        preferred.forEach(id => selectedCategoryIds.add(id));
+      } else {
+        rawCategories.forEach(c => selectedCategoryIds.add(c.id));
+      }
+      updatePillStyles();
+      if (submitBtnText) submitBtnText.textContent = MSG.subscribe;
+    }
+
+    // Sincronizar indicador de notificación en toda la interfaz
+    syncActiveBadge(Boolean(sub && sub.active));
+  }
+
+  function syncActiveBadge(isActive) {
+    // Badges en cabecera o botones
+    const badges = document.querySelectorAll('#notification-active-badge, .js-notif-active-indicator');
+    badges.forEach(badge => {
+      badge.classList.toggle('hidden', !isActive);
+    });
+  }
+
+  function openModal() {
+    if (!modal || !dialog) return;
+    renderView();
+    modal.classList.remove('pointer-events-none', 'opacity-0');
+    modal.classList.add('opacity-100');
+    dialog.classList.remove('scale-95');
+    dialog.classList.add('scale-100');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    if (!modal || !dialog) return;
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100');
+    dialog.classList.add('scale-95');
+    dialog.classList.remove('scale-100');
+    document.body.style.overflow = '';
+  }
+
+  // Event Listeners
+  categoryPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      const catId = pill.getAttribute('data-category-id');
+      if (!catId) return;
+      if (selectedCategoryIds.has(catId)) {
+        selectedCategoryIds.delete(catId);
+      } else {
+        selectedCategoryIds.add(catId);
+      }
+      updatePillStyles();
+    });
+  });
+
+  toggleAllBtn?.addEventListener('click', () => {
+    if (selectedCategoryIds.size === categoryPills.length) {
+      selectedCategoryIds.clear();
+    } else {
+      categoryPills.forEach(p => {
+        const id = p.getAttribute('data-category-id');
+        if (id) selectedCategoryIds.add(id);
+      });
+    }
+    updatePillStyles();
+  });
+
+  editBtn?.addEventListener('click', () => {
+    const sub = getSavedSubscription();
+    if (activeView) activeView.classList.add('hidden');
+    if (formView) formView.classList.remove('hidden');
+
+    if (sub) {
+      if (emailInput) emailInput.value = sub.email;
+      selectedCategoryIds = new Set(sub.categories);
+      updatePillStyles();
+      const freqRadio = formView.querySelector(`input[name="notif-freq"][value="${sub.frequency}"]`);
+      if (freqRadio) freqRadio.checked = true;
+    }
+    if (submitBtnText) submitBtnText.textContent = MSG.update;
+  });
+
+  unsubscribeBtn?.addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent('todomigob:subscription-changed', { detail: null }));
+    showAlert(MSG.cancelled, false);
+    setTimeout(() => {
+      renderView();
+    }, 900);
+  });
+
+  formView?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email || !emailRegex.test(email)) {
+      showAlert(MSG.invalidEmail, true);
+      emailInput?.focus();
+      return;
+    }
+
+    if (selectedCategoryIds.size === 0) {
+      showAlert(MSG.noCategories, true);
+      return;
+    }
+
+    const freqInput = formView.querySelector('input[name="notif-freq"]:checked');
+    const frequency = freqInput ? freqInput.value : 'instant';
+
+    // Estado cargando (simula conexión a backend)
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitBtnText) submitBtnText.textContent = MSG.saving;
+    if (submitSpinner) submitSpinner.classList.remove('hidden');
+
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    const subscription = {
+      email,
+      categories: Array.from(selectedCategoryIds),
+      frequency,
+      active: true,
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(subscription));
+      window.dispatchEvent(new CustomEvent('todomigob:subscription-changed', { detail: subscription }));
+      showAlert(MSG.success, false);
+      setTimeout(() => {
+        renderView();
+      }, 1000);
+    } catch (err) {
+      showAlert('Error local al guardar', true);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitBtnText) submitBtnText.textContent = MSG.subscribe;
+      if (submitSpinner) submitSpinner.classList.add('hidden');
+    }
+  });
+
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('pointer-events-none')) {
+      closeModal();
+    }
+  });
+
+  // Exponer función de apertura globalmente para botones
+  window.openNotificationModal = openModal;
+
+  // Enganchar todos los botones con clase js-open-notifications o id
+  function setupOpenButtons() {
+    const buttons = document.querySelectorAll('.js-open-notifications, #notification-toggle-btn, #btn-open-notifications');
+    buttons.forEach(btn => {
+      btn.removeEventListener('click', openModal);
+      btn.addEventListener('click', openModal);
+    });
+
+    const sub = getSavedSubscription();
+    syncActiveBadge(Boolean(sub && sub.active));
+  }
+
+  setupOpenButtons();
+  window.addEventListener('todomigob:subscription-changed', () => {
+    const sub = getSavedSubscription();
+    syncActiveBadge(Boolean(sub && sub.active));
+  });
+
+  document.addEventListener('astro:page-load', setupOpenButtons);
+</script>
