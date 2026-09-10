@@ -12,6 +12,9 @@ import { LocalNewsStorage } from "./storage/localNewsStorage.js";
 import { R2NewsStorage } from "./storage/r2NewsStorage.js";
 import type { NewsStorage } from "./storage/newsStorage.js";
 import { createLogger } from "./utils/logger.js";
+import { JsonFileUserDatabase } from "./notifications/database.js";
+import { NativeSmtpEmailTransport, MockEmailTransport } from "./notifications/emailTransport.js";
+import { NotificationDispatcher } from "./notifications/notificationDispatcher.js";
 
 export function createDependencies(): PipelineDependencies {
   const config = loadEnvironmentConfig();
@@ -33,6 +36,22 @@ export function createDependencies(): PipelineDependencies {
       : [new MockNewsSource("MOCK")],
   );
 
+  const notificationDb = new JsonFileUserDatabase(config.notifications.dbPath);
+  const emailTransport =
+    config.notifications.smtp.user && config.nodeEnv === "production"
+      ? new NativeSmtpEmailTransport({
+          host: config.notifications.smtp.host,
+          port: config.notifications.smtp.port,
+          user: config.notifications.smtp.user,
+          pass: config.notifications.smtp.pass,
+          senderName: config.notifications.smtp.appName,
+        })
+      : new MockEmailTransport();
+
+  const notificationDispatcher = config.notifications.enabled
+    ? new NotificationDispatcher(notificationDb, emailTransport, logger)
+    : undefined;
+
   return {
     storage,
     previewStorage,
@@ -44,6 +63,7 @@ export function createDependencies(): PipelineDependencies {
     logger,
     scraperDelayMs: config.scraper.delayMs,
     dryRun: config.dryRun,
+    notificationDispatcher,
   };
 }
 

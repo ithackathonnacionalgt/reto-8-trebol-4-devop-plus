@@ -3,12 +3,17 @@ import { z } from "zod";
 import {
   DEFAULT_AI_MAX_RETRIES,
   DEFAULT_AI_TIMEOUT_MS,
+  DEFAULT_NOTIFICATION_DB_PATH,
   DEFAULT_OUTPUT_PREVIEW_PATH,
   DEFAULT_R2_OBJECT_KEY,
   DEFAULT_SCRAPER_DELAY_MS,
   DEFAULT_SCRAPER_MAX_RETRIES,
   DEFAULT_SCRAPER_TIMEOUT_MS,
   DEFAULT_SCRAPER_USER_AGENT,
+  DEFAULT_SMTP_APP_NAME,
+  DEFAULT_SMTP_HOST,
+  DEFAULT_SMTP_PASS,
+  DEFAULT_SMTP_PORT,
 } from "./constants.js";
 import { ConfigurationError } from "../errors/ConfigurationError.js";
 
@@ -61,6 +66,25 @@ const environmentSchema = z.object({
     emptyToUndefined,
     z.string().trim().min(1).default(DEFAULT_OUTPUT_PREVIEW_PATH),
   ),
+  SMTP_HOST: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().min(1).default(DEFAULT_SMTP_HOST),
+  ),
+  SMTP_PORT: positiveInteger(DEFAULT_SMTP_PORT),
+  SMTP_USER: optionalText,
+  SMTP_PASS: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().min(1).default(DEFAULT_SMTP_PASS),
+  ),
+  SMTP_APP_NAME: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().min(1).default(DEFAULT_SMTP_APP_NAME),
+  ),
+  NOTIFICATIONS_ENABLED: booleanFromEnvironment,
+  NOTIFICATION_DB_PATH: z.preprocess(
+    emptyToUndefined,
+    z.string().trim().min(1).default(DEFAULT_NOTIFICATION_DB_PATH),
+  ),
 });
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
@@ -90,6 +114,17 @@ export interface EnvironmentConfig {
   };
   dryRun: boolean;
   outputPreviewPath: string;
+  notifications: {
+    enabled: boolean;
+    dbPath: string;
+    smtp: {
+      host: string;
+      port: number;
+      user: string | undefined;
+      pass: string;
+      appName: string;
+    };
+  };
 }
 
 export interface DeepSeekConfig {
@@ -145,6 +180,17 @@ export function loadEnvironmentConfig(
     },
     dryRun: env.DRY_RUN,
     outputPreviewPath: env.OUTPUT_PREVIEW_PATH,
+    notifications: {
+      enabled: env.NOTIFICATIONS_ENABLED,
+      dbPath: env.NOTIFICATION_DB_PATH,
+      smtp: {
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+        appName: env.SMTP_APP_NAME,
+      },
+    },
   };
 }
 
