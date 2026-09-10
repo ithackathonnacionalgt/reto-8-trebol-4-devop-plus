@@ -1,10 +1,13 @@
 import { pathToFileURL } from "node:url";
 
 import { MockAIProcessor } from "./ai/providers/mockProcessor.js";
-import { requireR2Config, loadEnvironmentConfig } from "./config/env.js";
+import { DeepSeekProcessor } from "./ai/providers/deepseekProcessor.js";
+import { requireDeepSeekConfig, requireR2Config, loadEnvironmentConfig } from "./config/env.js";
 import { runPipeline, type PipelineDependencies } from "./app/runPipeline.js";
+import { AgnNewsSource } from "./sources/providers/agnSource.js";
 import { MockNewsSource } from "./sources/providers/mockSource.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
+import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
 import { R2NewsStorage } from "./storage/r2NewsStorage.js";
 import type { NewsStorage } from "./storage/newsStorage.js";
@@ -15,13 +18,29 @@ export function createDependencies(): PipelineDependencies {
   const logger = createLogger(config.logLevel);
   const storage = createStorage(config);
   const previewStorage = new LocalNewsStorage(config.outputPreviewPath);
-  const sources = new SourceRegistry([new MockNewsSource("MOCK")]);
+  const sources = new SourceRegistry(
+    config.nodeEnv === "production"
+      ? [
+          new AgnNewsSource(new NativeHttpClient(), {
+            fetchOptions: {
+              timeoutMs: config.scraper.timeoutMs,
+              userAgent: config.scraper.userAgent,
+              maxRetries: config.scraper.maxRetries,
+              delayMs: config.scraper.delayMs,
+            },
+          }),
+        ]
+      : [new MockNewsSource("MOCK")],
+  );
 
   return {
     storage,
     previewStorage,
     sources: sources.list(),
-    aiProcessor: new MockAIProcessor(),
+    aiProcessor:
+      config.nodeEnv === "production"
+        ? new DeepSeekProcessor(requireDeepSeekConfig(config))
+        : new MockAIProcessor(),
     logger,
     scraperDelayMs: config.scraper.delayMs,
     dryRun: config.dryRun,
