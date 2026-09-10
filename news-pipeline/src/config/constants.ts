@@ -4,5 +4,6 @@ export const DEFAULT_SCRAPER_USER_AGENT = "GovernmentNewsPipeline/1.0";
 export const DEFAULT_SCRAPER_TIMEOUT_MS = 15_000;
 export const DEFAULT_SCRAPER_DELAY_MS = 1_000;
 export const DEFAULT_SCRAPER_MAX_RETRIES = 2;
+export const DEFAULT_SCRAPER_MAX_CANDIDATES = 30;
 export const DEFAULT_AI_TIMEOUT_MS = 60_000;
 export const DEFAULT_AI_MAX_RETRIES = 2;

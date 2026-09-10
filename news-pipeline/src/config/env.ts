@@ -7,6 +7,7 @@ import {
   DEFAULT_R2_OBJECT_KEY,
   DEFAULT_SCRAPER_DELAY_MS,
   DEFAULT_SCRAPER_MAX_RETRIES,
+  DEFAULT_SCRAPER_MAX_CANDIDATES,
   DEFAULT_SCRAPER_TIMEOUT_MS,
   DEFAULT_SCRAPER_USER_AGENT,
 } from "./constants.js";
@@ -54,6 +55,7 @@ const environmentSchema = z.object({
   SCRAPER_TIMEOUT_MS: positiveInteger(DEFAULT_SCRAPER_TIMEOUT_MS),
   SCRAPER_DELAY_MS: nonNegativeInteger(DEFAULT_SCRAPER_DELAY_MS),
   SCRAPER_MAX_RETRIES: nonNegativeInteger(DEFAULT_SCRAPER_MAX_RETRIES),
+  SCRAPER_MAX_CANDIDATES: positiveInteger(DEFAULT_SCRAPER_MAX_CANDIDATES),
   AI_TIMEOUT_MS: positiveInteger(DEFAULT_AI_TIMEOUT_MS),
   AI_MAX_RETRIES: nonNegativeInteger(DEFAULT_AI_MAX_RETRIES),
   DRY_RUN: booleanFromEnvironment,
@@ -87,6 +89,7 @@ export interface EnvironmentConfig {
     timeoutMs: number;
     delayMs: number;
     maxRetries: number;
+    maxCandidates: number;
   };
   dryRun: boolean;
   outputPreviewPath: string;
@@ -142,6 +145,7 @@ export function loadEnvironmentConfig(
       timeoutMs: env.SCRAPER_TIMEOUT_MS,
       delayMs: env.SCRAPER_DELAY_MS,
       maxRetries: env.SCRAPER_MAX_RETRIES,
+      maxCandidates: env.SCRAPER_MAX_CANDIDATES,
     },
     dryRun: env.DRY_RUN,
     outputPreviewPath: env.OUTPUT_PREVIEW_PATH,

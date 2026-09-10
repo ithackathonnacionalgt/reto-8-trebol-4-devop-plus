@@ -48,8 +48,11 @@ function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig
   };
   const client = new NativeHttpClient();
   return [
-    new AgnNewsSource(client, { fetchOptions }),
-    new SegeplanNewsSource(client, { fetchOptions }),
+    new AgnNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new SegeplanNewsSource(client, {
+      fetchOptions,
+      maxCandidates: config.scraper.maxCandidates,
+    }),
   ];
 }
 
