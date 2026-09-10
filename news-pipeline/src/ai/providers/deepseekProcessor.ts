@@ -132,7 +132,9 @@ export class DeepSeekProcessor implements AIProcessor {
         return parseProcessedNewsResult(content);
       } catch (error) {
         throw new DeepSeekRequestError("La IA devolvió una estructura inválida", {
-          retryable: true,
+          // Reintentar no corrige una respuesta semánticamente incompatible con el contrato.
+          // Evita triplicar el tiempo de procesamiento cuando el modelo repite el mismo formato.
+          retryable: false,
           cause: error,
         });
       }

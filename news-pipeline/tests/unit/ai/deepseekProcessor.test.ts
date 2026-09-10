@@ -65,7 +65,7 @@ describe("DeepSeekProcessor", () => {
     expect(body.messages).toHaveLength(2);
   });
 
-  it("retries invalid model JSON and succeeds", async () => {
+  it("does not retry an invalid model JSON response", async () => {
     const fetchImplementation = vi
       .fn<FetchImplementation>()
       .mockResolvedValueOnce(response("not-json"))
@@ -76,8 +76,8 @@ describe("DeepSeekProcessor", () => {
       vi.fn().mockResolvedValue(undefined),
     );
 
-    await expect(processor.process(candidate)).resolves.toMatchObject({ relevant: true });
-    expect(fetchImplementation).toHaveBeenCalledTimes(2);
+    await expect(processor.process(candidate)).rejects.toThrow("La IA devolvió una estructura inválida");
+    expect(fetchImplementation).toHaveBeenCalledOnce();
   });
 
   it("retries temporary HTTP errors", async () => {
