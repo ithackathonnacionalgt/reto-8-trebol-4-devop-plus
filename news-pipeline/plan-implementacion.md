@@ -17,9 +17,9 @@ Este documento divide la implementación descrita en `estructura-pipeline-notici
 
 ## Estado de avance
 
-- [ ] Hito 1 — Base del proyecto y herramientas
-- [ ] Hito 2 — Dominio, taxonomía y validación del documento
-- [ ] Hito 3 — Configuración, errores, logging y utilidades resilientes
+- [x] Hito 1 — Base del proyecto y herramientas
+- [x] Hito 2 — Dominio, taxonomía y validación del documento
+- [x] Hito 3 — Configuración, errores, logging y utilidades resilientes
 - [ ] Hito 4 — Acceso HTTP y normalización para scraping
 - [ ] Hito 5 — Abstracción de fuentes, registro y fuente simulada
 - [ ] Hito 6 — Identidad y deduplicación determinista
