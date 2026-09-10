@@ -68,14 +68,14 @@ if (isEntrypoint) {
   });
 }
 
-function createStorage(config: ReturnType<typeof loadEnvironmentConfig>): NewsStorage {
+export function createStorage(config: ReturnType<typeof loadEnvironmentConfig>): NewsStorage {
   const hasR2Configuration =
     config.r2.accountId !== undefined &&
     config.r2.accessKeyId !== undefined &&
     config.r2.secretAccessKey !== undefined &&
     config.r2.bucketName !== undefined;
 
-  if (config.nodeEnv === "production") {
+  if (config.nodeEnv === "production" && !config.dryRun) {
     return new R2NewsStorage(requireR2Config(config));
   }
   if (hasR2Configuration) {
