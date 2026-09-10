@@ -1,0 +1,37 @@
+{
+  "lastUpdatedAt": "2026-09-10T12:00:00Z",
+  "totalNews": 1,
+  "availableCategories": [
+    { "id": "education_scholarships", "name": "Educación y Becas" },
+    { "id": "health_wellbeing", "name": "Salud y Prevención" },
+    { "id": "social_programs", "name": "Apoyo Social" },
+    { "id": "procedures_services", "name": "Trámites y Documentos" },
+    { "id": "security_alerts", "name": "Alertas y Emergencias" },
+    { "id": "employment_development", "name": "Empleo y Emprendimiento" }
+  ],
+  "news": [
+    {
+      "id": "segeplan-scholarship-2026",
+      "originalUrl": "https://example.gob.gt/scholarships/2026",
+      "source": "SEGEPLAN",
+      "sourceType": "announcement",
+      "categoryId": "education_scholarships",
+      "tags": ["becas", "universidad"],
+      "publishedAt": "2026-09-08T10:00:00Z",
+      "extractedAt": "2026-09-10T12:00:00Z",
+      "urgent": false,
+      "content": {
+        "es": {
+          "title": "Nueva convocatoria de becas",
+          "summary": "SEGEPLAN anunció una convocatoria para estudios universitarios.",
+          "citizenAction": "Consultar los requisitos de postulación."
+        },
+        "quc": {
+          "title": "K'ak' taqanik rech tob'anem tijonem",
+          "summary": "K'o jun k'ak' taqanik rech tijonem.",
+          "citizenAction": "Chawila' ri taq rajawaxik."
+        }
+      }
+    }
+  ]
+}
