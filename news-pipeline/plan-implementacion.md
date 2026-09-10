@@ -26,7 +26,7 @@ Este documento divide la implementación descrita en `estructura-pipeline-notici
 - [x] Hito 7 — Contrato, prompts y validación de IA
 - [x] Hito 8 — Integración con DeepSeek
 - [x] Hito 9 — Persistencia local y Cloudflare R2
-- [ ] Hito 10 — Servicios de procesamiento y consolidación
+- [x] Hito 10 — Servicios de procesamiento y consolidación
 - [ ] Hito 11 — Orquestador, dry run y ejecutable batch
 - [ ] Hito 12 — Fuente real de AGN
 - [ ] Hito 13 — Fuente real de SEGEPLAN
