@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import HeadSpeechBubble from '../components/HeadSpeechBubble.astro';
+---
+
+<Layout title="TODOMIGOB" showSearch={false}>
+  <!-- Vista 1: Inicio / Carga (El botón de búsqueda se oculta hasta elegir idioma) -->
+  <section class="flex-1 flex flex-col items-center justify-center min-h-[65vh] p-6 text-center">
+    <HeadSpeechBubble text="A-文" />
+  </section>
+</Layout>

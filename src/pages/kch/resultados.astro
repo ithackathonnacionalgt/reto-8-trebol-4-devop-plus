@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, getLocalizedPath } from '../../i18n/utils';
+
+const t = useTranslations('kch');
+const detailUrl = getLocalizedPath('/detalle', 'kch');
+const currentSearch = Astro.url.searchParams.get('q') || '';
+---
+
+<Layout title="K'ulmatajem · TODOMIGOB">
+  <!-- Vista 3: Resultados (K'iche') -->
+  <section class="flex-1 flex flex-col items-center justify-center min-h-[60vh] px-4 py-8 max-w-xl mx-auto w-full">
+    <div class="w-full border-2 border-[#4997D0] rounded-xl p-5 sm:p-7 bg-white dark:bg-[#202020] mb-6 shadow-sm">
+      <div class="space-y-3">
+        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
+          {t('results.match')}
+        </a>
+        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
+          {t('results.match')}
+        </a>
+        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
+          {t('results.match')}
+        </a>
+        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
+          {t('results.match')}
+        </a>
+        <a href={detailUrl} class="block text-base sm:text-lg font-bold text-neutral-900 dark:text-white hover:text-[#4997D0] dark:hover:text-[#4997D0] hover:underline cursor-pointer">
+          {t('results.match')}
+        </a>
+      </div>
+    </div>
+
+    <form action="/kch/resultados" method="GET" class="w-full flex flex-col items-center gap-4">
+      <div class="w-full">
+        <input
+          type="text"
+          name="q"
+          defaultValue={currentSearch}
+          placeholder={t('results.placeholder')}
+          class="w-full px-4 py-3 border-2 border-[#4997D0] rounded-xl text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#4997D0] bg-white dark:bg-[#202020] shadow-xs"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-36 sm:w-44 py-2.5 px-6 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-lg rounded-xl transition-colors cursor-pointer shadow-md active:translate-y-0.5"
+      >
+        {t('search.button')}
+      </button>
+    </form>
+  </section>
+</Layout>
