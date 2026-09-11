@@ -26,7 +26,7 @@ describe("parseMintrabListing", () => {
       rawTitle: "MINTRAB anuncia Feria Nacional de Empleo en Quetzaltenango",
     });
     expect(candidates[1]?.originalUrl).toBe(
-      "https://mintrabajo.gob.gt/programa-de-trabajo-temporal-extranjero-abierto",
+      "https://www.mintrabajo.gob.gt/programa-de-trabajo-temporal-extranjero-abierto",
     );
     expect(candidates[1]?.publishedAt).toBe("2026-09-05T00:00:00.000Z");
   });
@@ -53,7 +53,7 @@ describe("MintrabNewsSource", () => {
 
     await expect(source.fetchCandidates()).resolves.toHaveLength(2);
     expect(client.get).toHaveBeenCalledWith(
-      "https://mintrabajo.gob.gt/noticias/",
+      "https://www.mintrabajo.gob.gt/noticias/",
       expect.objectContaining({ userAgent: "TestPipeline/1.0" }),
     );
   });

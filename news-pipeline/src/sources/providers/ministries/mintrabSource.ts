@@ -9,7 +9,7 @@ import { normalizeUrl } from "../../../scraping/normalizeUrl.js";
 import type { FetchPageOptions } from "../../../scraping/types.js";
 import type { NewsSource } from "../../newsSource.js";
 
-export const MINTRAB_LISTING_URL = "https://mintrabajo.gob.gt/noticias/";
+export const MINTRAB_LISTING_URL = "https://www.mintrabajo.gob.gt/noticias/";
 
 export interface MintrabSourceOptions {
   listingUrl?: string;

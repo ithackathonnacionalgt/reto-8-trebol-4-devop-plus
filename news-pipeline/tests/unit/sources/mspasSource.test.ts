@@ -26,7 +26,7 @@ describe("parseMspasListing", () => {
       rawTitle: "MSPAS inicia Jornada Nacional de Vacunación Infantil y Preventiva",
     });
     expect(candidates[1]?.originalUrl).toBe(
-      "https://salud.gob.gt/acciones-contra-dengue-departamentos-priorizados",
+      "https://www.mspas.gob.gt/acciones-contra-dengue-departamentos-priorizados",
     );
     expect(candidates[1]?.publishedAt).toBe("2026-09-07T00:00:00.000Z");
   });
@@ -53,7 +53,7 @@ describe("MspasNewsSource", () => {
 
     await expect(source.fetchCandidates()).resolves.toHaveLength(2);
     expect(client.get).toHaveBeenCalledWith(
-      "https://salud.gob.gt/noticias/",
+      "https://www.mspas.gob.gt/noticias-mspas",
       expect.objectContaining({ userAgent: "TestPipeline/1.0" }),
     );
   });

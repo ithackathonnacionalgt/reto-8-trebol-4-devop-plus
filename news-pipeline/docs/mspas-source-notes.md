@@ -2,7 +2,7 @@
 
 Inspected on 2026-09-10 from the official MSPAS/Salud portal:
 
-- Listing used by the provider: <https://salud.gob.gt/noticias/>
+- Listing used by the provider: <https://www.mspas.gob.gt/noticias-mspas>
 - Category focus: `health_wellbeing` (Salud y Prevención).
 - The listing exposes institutional notices regarding national vaccination campaigns, dengue/vector prevention campaigns, hospital announcements and health advisories.
 - The parser consumes semantic `article` blocks and heading links. It does not execute scripts or depend on client-side rendering.

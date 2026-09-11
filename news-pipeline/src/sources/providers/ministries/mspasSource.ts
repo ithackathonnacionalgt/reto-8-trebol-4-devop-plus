@@ -9,7 +9,7 @@ import { normalizeUrl } from "../../../scraping/normalizeUrl.js";
 import type { FetchPageOptions } from "../../../scraping/types.js";
 import type { NewsSource } from "../../newsSource.js";
 
-export const MSPAS_LISTING_URL = "https://salud.gob.gt/noticias/";
+export const MSPAS_LISTING_URL = "https://www.mspas.gob.gt/noticias-mspas";
 
 export interface MspasSourceOptions {
   listingUrl?: string;
