@@ -41,6 +41,15 @@ const noticias = noticiasData.news || [];
         </svg>
         <span>{t('preferences.button')}</span>
       </a>
+    <!-- Barra de estado de filtro de preferencias activo (K'iche') -->
+    <div id="active-pref-banner" class="hidden w-full mb-3 px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-[#4997D0]/30 text-xs sm:text-sm text-neutral-700 dark:text-neutral-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-[#4997D0]"></span>
+        <span id="pref-banner-text">Taq cha'om k'ulmatajem utz kacha'o</span>
+      </div>
+      <a href={categoriesUrl} class="font-bold text-[#4997D0] dark:text-sky-300 hover:underline">
+        K'exa' →
+      </a>
     </div>
 
     <!-- Panel rectangular con lista de resultados clasificados por relevancia -->
@@ -250,6 +259,22 @@ const noticias = noticiasData.news || [];
     preferredCats = [];
   }
 
+  const catsFromUrl = urlParams.get('cats');
+  if (catsFromUrl) {
+    const splitCats = catsFromUrl.split(',').map(c => c.trim()).filter(Boolean);
+    if (splitCats.length > 0) {
+      preferredCats = splitCats;
+      try {
+        localStorage.setItem('todomigob_categories', JSON.stringify(preferredCats));
+      } catch (e) {}
+    }
+  }
+
+  const activePrefBanner = document.getElementById('active-pref-banner');
+  if (activePrefBanner) {
+    activePrefBanner.classList.toggle('hidden', preferredCats.length === 0);
+  }
+
   const input = document.getElementById('search-input');
   if (input && qFromUrl) {
     input.value = qFromUrl;
@@ -431,7 +456,18 @@ const noticias = noticiasData.news || [];
     const meaningfulTokens = tokens.filter(t => !STOP_WORDS.has(t) && t.length > 1);
     const activeTokens = meaningfulTokens.length > 0 ? meaningfulTokens : tokens;
 
-    const scoredCards = primaryCards.map(card => {
+    // Filtrar tarjetas principales: si hay preferencias activas, SOLO mostrar las categorías elegidas
+    const eligibleCards = primaryCards.filter(card => {
+      const cardCat = card.getAttribute('data-category') || '';
+      const matchesCategory = preferredCats.length === 0 || preferredCats.includes(cardCat);
+      if (!matchesCategory) {
+        card.classList.add('hidden');
+        return false;
+      }
+      return true;
+    });
+
+    const scoredCards = eligibleCards.map(card => {
       const score = scoreCard(card, normQuery, tokens, activeTokens);
       return { card, score };
     });

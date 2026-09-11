@@ -112,6 +112,7 @@ const noticias = noticiasData.news || [];
   const feedTitle = document.getElementById('feed-title');
   const feedSubtitle = document.getElementById('feed-subtitle');
 
+  // Obtener preferencias guardadas del usuario o de parámetros URL
   let preferredCats = [];
   try {
     const saved = localStorage.getItem('todomigob_categories');
@@ -121,6 +122,18 @@ const noticias = noticiasData.news || [];
     }
   } catch (e) {
     preferredCats = [];
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const catsFromUrl = urlParams.get('cats');
+  if (catsFromUrl) {
+    const splitCats = catsFromUrl.split(',').map(c => c.trim()).filter(Boolean);
+    if (splitCats.length > 0) {
+      preferredCats = splitCats;
+      try {
+        localStorage.setItem('todomigob_categories', JSON.stringify(preferredCats));
+      } catch (e) {}
+    }
   }
 
   if (feedTitle && feedSubtitle) {
@@ -133,18 +146,14 @@ const noticias = noticiasData.news || [];
     }
   }
 
+  // Filtrar el catálogo: si hay preferencias activas, SOLO mostrar noticias de las categorías preferidas
   let feedPool = [];
   if (Array.isArray(noticias) && noticias.length > 0) {
     if (preferredCats.length > 0) {
-      const matching = noticias.filter((item) => {
+      feedPool = noticias.filter((item) => {
         const catId = item.categoryId || item.categoriaId;
         return preferredCats.includes(catId);
       });
-      const others = noticias.filter((item) => {
-        const catId = item.categoryId || item.categoriaId;
-        return !preferredCats.includes(catId);
-      });
-      feedPool = matching.length > 0 ? [...matching, ...others] : [...noticias];
     } else {
       feedPool = [...noticias];
     }
@@ -230,7 +239,22 @@ const noticias = noticiasData.news || [];
   let isLoading = false;
 
   function loadNextBatch() {
-    if (!container || feedPool.length === 0 || isLoading) return;
+    if (!container || isLoading) return;
+    if (feedPool.length === 0) {
+      if (sentinel) sentinel.style.display = 'none';
+      if (!container.hasChildNodes()) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'col-span-full py-8 text-center text-neutral-500 dark:text-neutral-400';
+        emptyMsg.innerHTML = `
+          <p class="text-base font-medium">Maj taq ub'ixik pa taq le ach'ob'oj cha'om.</p>
+          <a href="${categoriesUrl}" class="inline-block mt-2 text-sm font-bold text-[#4997D0] dark:text-sky-300 hover:underline">
+            K'exa' taq ach'ob'oj →
+          </a>
+        `;
+        container.appendChild(emptyMsg);
+      }
+      return;
+    }
     isLoading = true;
 
     const countToLoad = Math.min(BATCH_SIZE, feedPool.length);
