@@ -93,7 +93,7 @@ export function renderNewsHtml(userName: string, news: NewsItem): string {
 
               <!-- Botón de acción -->
               <div style="text-align: center; margin: 32px 0 16px 0;">
-                <a href="${originalUrl}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #4997D0; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(73, 151, 208, 0.3);">
+                <a href="https://todomigobgt.carlosdelcidramirez.workers.dev/buscar/" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #4997D0; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(73, 151, 208, 0.3);">
                   Ver Notificación Completa
                 </a>
               </div>
@@ -126,7 +126,7 @@ export function renderNewsText(userName: string, news: NewsItem): string {
   const title = news.content.es.title;
   const summary = news.content.es.summary;
   const action = news.content.es.citizenAction;
-  const url = news.originalUrl || "https://todomigob.gob.gt";
+  const url = "https://todomigobgt.carlosdelcidramirez.workers.dev/buscar/";
 
   let text = `TODOMIGOBGT - ${categoryName.toUpperCase()}\n`;
   text += `${"=".repeat(40)}\n\n`;

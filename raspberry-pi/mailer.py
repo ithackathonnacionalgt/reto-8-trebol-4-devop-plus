@@ -136,7 +136,7 @@ class TodoMiGobMailer:
 
                             <!-- Botón de acción -->
                             <div style="text-align: center; margin: 32px 0 16px 0;">
-                                <a href="{original_url}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #4997D0; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(73, 151, 208, 0.3);">
+                                <a href="https://todomigobgt.carlosdelcidramirez.workers.dev/buscar/" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #4997D0; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(73, 151, 208, 0.3);">
                                     Ver Notificación Completa
                                 </a>
                             </div>
@@ -169,7 +169,7 @@ class TodoMiGobMailer:
         title = content_es.get("title", news.get("title", "Nueva noticia"))
         summary = content_es.get("summary", news.get("summary", ""))
         action = content_es.get("citizenAction", news.get("citizenAction", ""))
-        url = news.get("originalUrl", "https://todomigob.gob.gt")
+        url = "https://todomigobgt.carlosdelcidramirez.workers.dev/buscar/"
 
         text = f"TODOMIGOBGT - {category_name.upper()}\n"
         text += "=" * 40 + "\n\n"
