@@ -402,11 +402,17 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/news/dispatch":
             # Endpoint para recibir noticias y despacharlas a usuarios suscritos
-            news_data = body.get("news") or body
-            if isinstance(news_data, dict):
-                news_list = [news_data]
-            elif isinstance(news_data, list):
-                news_list = news_data
+            if isinstance(body, list):
+                news_list = body
+            elif isinstance(body, dict):
+                news_data = body.get("news", body)
+                if isinstance(news_data, list):
+                    news_list = news_data
+                elif isinstance(news_data, dict):
+                    news_list = [news_data]
+                else:
+                    self._send_json(400, {"error": "Formato de noticia no reconocido."})
+                    return
             else:
                 self._send_json(400, {"error": "Se esperaba un objeto de noticia o una lista en 'news'."})
                 return
