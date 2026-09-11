@@ -7,6 +7,7 @@ Incluye portal web para ciudadanos y panel de administración.
 import os
 import json
 import logging
+import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from typing import Any, Dict, List, Optional
@@ -119,7 +120,7 @@ HTML_PORTAL = """<!DOCTYPE html>
         <div id="tab-subscribe" class="card">
             <h2>Registro de Preferencias de Noticias</h2>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-                Recibe avisos inmediatos en tu correo electrónico cada vez que el gobierno publique información o trámites de las categorías que elijas.
+                Al registrarte recibirás automáticamente un <strong>correo de bienvenida con una noticia oficial destacada de cada categoría</strong> (obtenida desde Cloudflare R2), y notificaciones oportunas cada vez que se publique información de las áreas que elijas.
             </p>
             <form id="subscribeForm" onsubmit="handleSubscribe(event)">
                 <div class="form-group">
@@ -181,16 +182,19 @@ HTML_PORTAL = """<!DOCTYPE html>
 
         <!-- Pestaña 4: Prueba de SMTP -->
         <div id="tab-test" class="card" style="display: none;">
-            <h2>Probar Conectividad SMTP</h2>
+            <h2>Probar Conectividad SMTP y Correo de Bienvenida</h2>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-                Envía un correo de prueba a tu dirección utilizando el servidor Gmail con la contraseña de aplicación configurada ('todomigob').
+                Envía un correo de prueba a tu dirección utilizando el servidor Gmail con la contraseña de aplicación configurada ('todomigob') o prueba el correo de bienvenida con noticias desde Cloudflare R2.
             </p>
-            <form id="testForm" onsubmit="handleTestEmail(event)">
+            <form id="testForm" onsubmit="event.preventDefault();">
                 <div class="form-group">
                     <label for="testEmail">Enviar correo de prueba a:</label>
                     <input type="email" id="testEmail" required placeholder="tu-correo@ejemplo.com">
                 </div>
-                <button type="submit" class="btn">Enviar Notificación de Prueba</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn" onclick="handleTestEmail(event)">Notificación Simple</button>
+                    <button type="button" class="btn btn-secondary" onclick="handleTestWelcomeEmail(event)">Correo Bienvenida (Cloudflare R2)</button>
+                </div>
             </form>
         </div>
 
@@ -259,7 +263,7 @@ HTML_PORTAL = """<!DOCTYPE html>
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showAlert("¡Registro exitoso! Tus preferencias se han guardado correctamente.");
+                    showAlert("¡Registro exitoso! Se ha enviado un correo de bienvenida con noticias de cada categoría a " + email + ".");
                     document.getElementById("subscribeForm").reset();
                 } else {
                     showAlert(data.error || "Error al registrar preferencias.", true);
@@ -309,6 +313,10 @@ HTML_PORTAL = """<!DOCTYPE html>
         async function handleTestEmail(e) {
             e.preventDefault();
             const to = document.getElementById("testEmail").value.trim();
+            if (!to) {
+                showAlert("Por favor ingresa una dirección de correo.", true);
+                return;
+            }
             try {
                 showAlert("Enviando correo de prueba vía SMTP Gmail...");
                 const res = await fetch("/api/test-email", {
@@ -321,6 +329,31 @@ HTML_PORTAL = """<!DOCTYPE html>
                     showAlert("¡Correo de prueba enviado con éxito a " + to + "!");
                 } else {
                     showAlert("Fallo al enviar correo: " + (data.error || "Error desconocido"), true);
+                }
+            } catch (err) {
+                showAlert("Error al conectar con la API: " + err.message, true);
+            }
+        }
+
+        async function handleTestWelcomeEmail(e) {
+            e.preventDefault();
+            const to = document.getElementById("testEmail").value.trim();
+            if (!to) {
+                showAlert("Por favor ingresa una dirección de correo.", true);
+                return;
+            }
+            try {
+                showAlert("Consultando noticias en Cloudflare R2 y despachando correo de bienvenida...");
+                const res = await fetch("/api/test-welcome-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ to, name: "Ciudadano de Prueba" })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showAlert("¡Correo de bienvenida enviado con éxito a " + to + " (" + data.categories_count + " categorías de noticias incluidas)!");
+                } else {
+                    showAlert("Fallo al enviar correo de bienvenida: " + (data.error || "Error desconocido"), true);
                 }
             } catch (err) {
                 showAlert("Error al conectar con la API: " + err.message, true);
@@ -346,6 +379,31 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
         self.wfile.write(html.encode("utf-8"))
+
+    def _dispatch_welcome_email_async(self, user_id: int, user_name: str, user_email: str):
+        """
+        Envía el correo de bienvenida en un hilo en segundo plano (background thread).
+        Consulta el bucket de Cloudflare R2 con las noticias vigentes, toma una noticia
+        por cada categoría y despacha el correo vía SMTP, registrando la auditoría.
+        """
+        def _send():
+            try:
+                logger.info(f"Nuevo ciudadano registrado #{user_id} ({user_email}). Consultando bucket de Cloudflare R2...")
+                category_news = mailer.get_one_news_per_category()
+                logger.info(f"Noticias obtenidas ({len(category_news)} categorías). Enviando correo de bienvenida a {user_email}...")
+                mailer.send_welcome_email(user_email, user_name, category_news)
+                db.log_notification(user_id, "welcome_email", "all_categories", "SENT")
+                logger.info(f"¡Correo de bienvenida enviado exitosamente a {user_email}!")
+            except Exception as e:
+                err_msg = str(e)
+                logger.error(f"Fallo al enviar correo de bienvenida a {user_email}: {err_msg}")
+                try:
+                    db.log_notification(user_id, "welcome_email", "all_categories", "FAILED", err_msg)
+                except Exception as log_err:
+                    logger.error(f"Error registrando auditoría en base de datos: {log_err}")
+
+        worker_thread = threading.Thread(target=_send, daemon=True)
+        worker_thread.start()
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -396,6 +454,11 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
 
             try:
                 user = db.register_user(name, email, preferences, allow_update=allow_update)
+
+                # Cuando se registre un nuevo usuario, se revisa el bucket de Cloudflare R2 y se envía el correo de bienvenida
+                if user.get("is_new"):
+                    self._dispatch_welcome_email_async(user["id"], user["name"], user["email"])
+
                 self._send_json(201, user)
             except Exception as e:
                 self._send_json(400, {"error": str(e)})
@@ -447,6 +510,26 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
             try:
                 mailer.send_notification(to_email, "Ciudadano", mock_news)
                 self._send_json(200, {"success": True, "message": f"Correo enviado exitosamente a {to_email}"})
+            except Exception as e:
+                self._send_json(500, {"success": False, "error": str(e)})
+
+        elif path == "/api/test-welcome-email":
+            to_email = body.get("to")
+            user_name = body.get("name", "Ciudadano")
+            if not to_email:
+                self._send_json(400, {"error": "Debe especificar el campo 'to' con la dirección de correo."})
+                return
+
+            try:
+                logger.info(f"Probando correo de bienvenida para {to_email} consultando Cloudflare R2...")
+                category_news = mailer.get_one_news_per_category()
+                mailer.send_welcome_email(to_email, user_name, category_news)
+                self._send_json(200, {
+                    "success": True,
+                    "message": f"Correo de bienvenida enviado exitosamente a {to_email}",
+                    "categories_count": len(category_news),
+                    "categories": [c["category_id"] for c in category_news]
+                })
             except Exception as e:
                 self._send_json(500, {"success": False, "error": str(e)})
         else:
