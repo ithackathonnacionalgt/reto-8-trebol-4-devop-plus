@@ -120,6 +120,8 @@ const { lang = 'es' } = Astro.props;
     let currentVoice = null;
     let isTouchToReadActive = false;
     let selectedTextBuffer = '';
+    let currentAudio = null;
+    let keepAliveTimer = null;
 
     const bubble = document.getElementById('tts-selection-bubble');
     const mainBtn = document.getElementById('tts-main-btn');
@@ -132,25 +134,28 @@ const { lang = 'es' } = Astro.props;
     const iconResume = document.getElementById('tts-icon-resume');
     const stopBtn = document.getElementById('tts-btn-stop');
 
-    // Cargar voces en español
+    // Cargar voces en español con priorización segura
     function loadVoices() {
       if (!synth) return;
       const all = synth.getVoices();
       if (!all || all.length === 0) return;
 
-      const spanish = all.filter((v) =>
-        v.lang.toLowerCase().startsWith('es') ||
-        v.name.toLowerCase().includes('spanish') ||
-        v.name.toLowerCase().includes('español')
-      );
+      const spanish = all.filter((v) => {
+        const lang = (v.lang || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return lang.startsWith('es') || name.includes('spanish') || name.includes('español');
+      });
 
       const pool = spanish.length > 0 ? spanish : all;
       currentVoice =
-        pool.find((v) => v.lang.toLowerCase().includes('es-gt')) ||
-        pool.find((v) => v.lang.toLowerCase().includes('es-419')) ||
-        pool.find((v) => v.lang.toLowerCase().includes('es-mx')) ||
-        pool.find((v) => v.name.toLowerCase().includes('natural') && v.lang.startsWith('es')) ||
-        pool[0];
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-gt')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-419')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-mx')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-us')) ||
+        pool.find((v) => (v.name || '').toLowerCase().includes('natural') && (v.lang || '').startsWith('es')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().startsWith('es')) ||
+        pool[0] ||
+        null;
     }
 
     if (synth) {
@@ -158,6 +163,13 @@ const { lang = 'es' } = Astro.props;
       if (synth.onvoiceschanged !== undefined) {
         synth.onvoiceschanged = loadVoices;
       }
+      // Reintentos para navegadores donde getVoices() es asíncrono
+      let voiceRetries = 0;
+      const voiceInterval = setInterval(() => {
+        voiceRetries++;
+        loadVoices();
+        if (currentVoice || voiceRetries > 8) clearInterval(voiceInterval);
+      }, 250);
     }
 
     function cleanText(raw) {
@@ -170,19 +182,43 @@ const { lang = 'es' } = Astro.props;
         .trim();
     }
 
-    function speak(text, highlightElem = null) {
-      if (!synth) return;
-      const prepared = cleanText(text);
+    function stopKeepAlive() {
+      if (keepAliveTimer) {
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = null;
+      }
+    }
+
+    function startKeepAlive() {
+      stopKeepAlive();
+      // Bugfix para Chromium: interrupciones automáticas a los 14 segundos
+      keepAliveTimer = setInterval(() => {
+        if (synth && synth.speaking && !synth.paused) {
+          synth.pause();
+          synth.resume();
+        }
+      }, 10000);
+    }
+
+    function stopAudioFallback() {
+      if (currentAudio) {
+        try {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        } catch (e) {}
+        currentAudio = null;
+      }
+    }
+
+    // Fallback de Audio HTML5 si SpeechSynthesis falla o no tiene voces locales
+    function speakViaAudioFallback(text, highlightElem) {
+      stop();
+      const prepared = cleanText(text).slice(0, 320);
       if (!prepared) return;
 
-      stop();
-
-      const utterance = new SpeechSynthesisUtterance(prepared);
-      if (!currentVoice) loadVoices();
-      if (currentVoice) utterance.voice = currentVoice;
-      utterance.lang = currentVoice ? currentVoice.lang : 'es-GT';
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
+      const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=es&client=tw-ob&q=' + encodeURIComponent(prepared);
+      const audio = new Audio(url);
+      currentAudio = audio;
 
       if (highlightElem) {
         document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
@@ -191,24 +227,113 @@ const { lang = 'es' } = Astro.props;
         highlightElem.classList.add('tts-highlight-reading');
       }
 
-      utterance.onstart = () => updateState(true, false);
-      utterance.onend = () => {
+      audio.onplay = () => updateState(true, false);
+      audio.onended = () => {
         updateState(false, false);
         if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        currentAudio = null;
       };
-      utterance.onerror = () => {
+      audio.onerror = (err) => {
+        console.warn('[Audio TTS Fallback Error]', err);
         updateState(false, false);
         if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        currentAudio = null;
       };
-      utterance.onpause = () => updateState(false, true);
-      utterance.onresume = () => updateState(true, false);
 
-      synth.cancel();
-      synth.speak(utterance);
+      audio.play().catch((err) => {
+        console.warn('[Audio Play Error]', err);
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+      });
+    }
+
+    function speak(text, highlightElem = null) {
+      const prepared = cleanText(text);
+      if (!prepared) return;
+
+      // Si el navegador no soporta síntesis de voz, usar fallback de audio
+      if (!synth) {
+        speakViaAudioFallback(prepared, highlightElem);
+        return;
+      }
+
+      // Detener audio o narración anterior sin doble cancel
+      stopAudioFallback();
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+      }
+
+      // Esperar un tick de 30ms para que Chromium procese la cancelación previa
+      setTimeout(() => {
+        if (!currentVoice) loadVoices();
+
+        const utterance = new SpeechSynthesisUtterance(prepared);
+        // Prevenir Garbage Collection en V8 (Brave / Chrome)
+        window._activeUtterance = utterance;
+
+        if (currentVoice) {
+          utterance.voice = currentVoice;
+          utterance.lang = currentVoice.lang || 'es-419';
+        } else {
+          // Fallback universal: es-419 o es-ES en vez de es-GT (que falla si no está instalada)
+          utterance.lang = 'es-419';
+        }
+
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+
+        if (highlightElem) {
+          document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
+            el.classList.remove('tts-highlight-reading');
+          });
+          highlightElem.classList.add('tts-highlight-reading');
+        }
+
+        utterance.onstart = () => {
+          startKeepAlive();
+          updateState(true, false);
+        };
+
+        utterance.onend = () => {
+          stopKeepAlive();
+          window._activeUtterance = null;
+          updateState(false, false);
+          if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        };
+
+        utterance.onerror = (e) => {
+          stopKeepAlive();
+          window._activeUtterance = null;
+          updateState(false, false);
+          if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+
+          if (e.error === 'interrupted' || e.error === 'canceled') {
+            return;
+          }
+
+          console.warn('[SpeechSynthesis Error]', e.error, 'Activando fallback de audio...');
+          speakViaAudioFallback(prepared, highlightElem);
+        };
+
+        utterance.onpause = () => updateState(false, true);
+        utterance.onresume = () => updateState(true, false);
+
+        // Si estaba pausado, desbloquear antes de hablar
+        if (synth.paused) {
+          synth.resume();
+        }
+
+        synth.speak(utterance);
+      }, 35);
     }
 
     function stop() {
-      if (synth) synth.cancel();
+      stopKeepAlive();
+      stopAudioFallback();
+      if (synth) {
+        synth.cancel();
+      }
+      window._activeUtterance = null;
       updateState(false, false);
       document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
         el.classList.remove('tts-highlight-reading');
@@ -216,6 +341,11 @@ const { lang = 'es' } = Astro.props;
     }
 
     function pause() {
+      if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();
+        updateState(false, true);
+        return;
+      }
       if (synth && synth.speaking) {
         synth.pause();
         updateState(false, true);
@@ -223,6 +353,11 @@ const { lang = 'es' } = Astro.props;
     }
 
     function resume() {
+      if (currentAudio && currentAudio.paused) {
+        currentAudio.play().catch(() => {});
+        updateState(true, false);
+        return;
+      }
       if (synth && synth.paused) {
         synth.resume();
         updateState(true, false);
@@ -314,6 +449,11 @@ const { lang = 'es' } = Astro.props;
     // Botones de control durante reproducción
     pauseResumeBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (currentAudio) {
+        if (currentAudio.paused) resume();
+        else pause();
+        return;
+      }
       if (synth && synth.paused) {
         resume();
       } else {
