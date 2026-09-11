@@ -6,5 +6,6 @@ export interface NewsCandidate {
   publishedAt?: string;
   extractedAt: string;
   rawTitle?: string;
+  imageUrl?: string;
   rawContent: string;
 }

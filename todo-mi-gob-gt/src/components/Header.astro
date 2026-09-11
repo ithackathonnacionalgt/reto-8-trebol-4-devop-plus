@@ -1,0 +1,104 @@
+---
+import { getLangFromUrl, getLocalizedPath } from '../i18n/utils';
+
+interface Props {
+  showSearch?: boolean;
+}
+
+const { showSearch = true } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const homeUrl = getLocalizedPath('/', lang);
+const searchUrl = getLocalizedPath('/buscar', lang);
+---
+
+<!-- Barra superior que representa literalmente la bandera de Guatemala (Azul - Blanco - Azul) -->
+<div class="w-full h-2 grid grid-cols-3 select-none">
+  <div class="bg-[#4997D0]"></div>
+  <div class="bg-white"></div>
+  <div class="bg-[#4997D0]"></div>
+</div>
+
+<header class="w-full bg-white dark:bg-[#171717] text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-800 select-none transition-colors duration-200">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+    <!-- Izquierda: Logo y Lema -->
+    <a href={homeUrl} class="flex flex-col text-left group">
+      <span class="font-logo font-bold text-2xl sm:text-3xl tracking-wide text-neutral-900 dark:text-white leading-tight">
+        TODOMIGOBGT
+      </span>
+      <span class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-normal">
+        Este no es un sitio oficial del gobierno
+      </span>
+    </a>
+
+    <!-- Derecha: Modo Oscuro/Claro y Lupa de Búsqueda condicional -->
+    <div class="flex items-center gap-3">
+      <!-- 1. Botón funcional de Modo Claro / Modo Oscuro -->
+      <button
+        id="theme-toggle"
+        type="button"
+        title="Cambiar a modo oscuro / claro"
+        class="w-10 h-10 rounded-full border-2 border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-neutral-700 dark:text-amber-400 hover:border-[#4997D0] hover:text-[#4997D0] dark:hover:border-[#4997D0] dark:hover:text-amber-300 transition-colors cursor-pointer bg-white dark:bg-neutral-800 shadow-xs"
+        aria-label="Cambiar a modo oscuro o claro"
+      >
+        <!-- Icono Luna (modo claro) -->
+        <svg id="theme-toggle-moon" class="w-5 h-5 block dark:hidden pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <!-- Icono Sol (modo oscuro) -->
+        <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4" stroke-width="2"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </button>
+
+      <!-- 2. Botón de Notificaciones por Correo -->
+      {showSearch && (
+        <button
+          id="notification-toggle-btn"
+          type="button"
+          title={lang === 'kch' ? "Taqik ub'ixik pa ch'ab'enib'al" : "Notificaciones por correo"}
+          class="js-open-notifications relative w-10 h-10 rounded-full border-2 border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:border-[#4997D0] hover:text-[#4997D0] dark:hover:border-[#4997D0] dark:hover:text-sky-300 transition-colors cursor-pointer bg-white dark:bg-neutral-800 shadow-xs"
+          aria-label={lang === 'kch' ? "Taqik ub'ixik" : "Notificaciones por correo"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span id="notification-active-badge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#4997D0] ring-2 ring-white dark:ring-neutral-800"></span>
+        </button>
+      )}
+
+      <!-- 3. Icono de Búsqueda (Lupa) - Solo se muestra si ya se seleccionó idioma -->
+      {showSearch && (
+        <a
+          href={searchUrl}
+          title="Buscar"
+          class="w-10 h-10 rounded-full border-2 border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:border-[#4997D0] hover:text-[#4997D0] dark:hover:border-[#4997D0] dark:hover:text-sky-300 transition-colors cursor-pointer bg-white dark:bg-neutral-800 shadow-xs"
+          aria-label="Buscar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="16.5" y1="16.5" x2="21" y2="21" />
+          </svg>
+        </a>
+      )}
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  function setupThemeToggle() {
+    const toggleThemeBtn = document.getElementById('theme-toggle');
+    if (!toggleThemeBtn) return;
+    
+    toggleThemeBtn.onclick = (e) => {
+      e.preventDefault();
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    };
+  }
+
+  setupThemeToggle();
+  document.addEventListener('astro:page-load', setupThemeToggle);
+  document.addEventListener('astro:after-swap', setupThemeToggle);
+</script>

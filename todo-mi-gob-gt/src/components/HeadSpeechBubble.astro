@@ -1,0 +1,119 @@
+---
+import { languages, defaultLang } from '../i18n/ui';
+import { getLangFromUrl } from '../i18n/utils';
+
+interface Props {
+  text?: string;
+}
+
+const { text = 'A-文' } = Astro.props;
+const currentLang = getLangFromUrl(Astro.url);
+---
+
+<div class="relative inline-flex flex-col items-center select-none" id="central-lang-container">
+  <!-- Botón central grande de selección de idioma usando la imagen icono-idioma.jpg -->
+  <button
+    id="central-lang-btn"
+    type="button"
+    aria-expanded="false"
+    aria-haspopup="true"
+    title="Seleccionar idioma / Cha' ri ach'ab'al"
+    class="group inline-flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56 p-4 rounded-3xl border-2 border-[#4997D0] bg-white dark:bg-[#202020] shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#4997D0]/30 overflow-hidden"
+  >
+    <div class="relative w-full h-full flex items-center justify-center pointer-events-none p-1">
+      <img
+        src="/icono-idioma.png"
+        alt="Seleccionar idioma (A 文)"
+        class="w-full h-full object-contain rounded-2xl dark:invert dark:contrast-125 transition-all duration-200"
+      />
+    </div>
+  </button>
+
+  <!-- Menú dinámico que lleva directamente a la pantalla de búsqueda en el idioma elegido -->
+  <div
+    id="central-lang-menu"
+    class="hidden absolute top-[102%] w-60 sm:w-68 rounded-2xl border-2 border-[#4997D0] bg-white dark:bg-[#202020] shadow-xl py-2 z-50 text-left transition-all duration-150"
+    role="menu"
+  >
+    <div class="px-4 py-2 border-b border-neutral-100 dark:border-neutral-700">
+      <span class="text-xs font-bold uppercase tracking-wider text-[#4997D0] dark:text-sky-400">
+        Elegir Idioma / Ch'ab'al
+      </span>
+    </div>
+
+    <div class="py-1">
+      {Object.entries(languages).map(([code, langData]) => {
+        const isSelected = currentLang === code;
+        const targetUrl = code === defaultLang ? '/categorias' : `/${code}/categorias`;
+
+        return (
+          <a
+            href={targetUrl}
+            data-lang={code}
+            role="menuitem"
+            class="flex items-center justify-between px-4 py-2.5 text-base font-bold text-neutral-800 dark:text-neutral-200 hover:bg-sky-50 dark:hover:bg-neutral-700 transition-colors group"
+          >
+            <div class="flex flex-col">
+              <span class="leading-tight group-hover:text-[#4997D0] dark:group-hover:text-sky-300">{langData.label}</span>
+              <span class="text-xs font-normal text-neutral-400 dark:text-neutral-500">{langData.native}</span>
+            </div>
+
+            <div class="w-7 h-7 rounded-full bg-sky-50 dark:bg-neutral-800 text-[#4997D0] dark:text-sky-400 flex items-center justify-center group-hover:bg-[#4997D0] group-hover:text-white transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const langContainer = document.getElementById('central-lang-container');
+  const langBtn = document.getElementById('central-lang-btn');
+  const langMenu = document.getElementById('central-lang-menu');
+
+  if (langBtn && langMenu && langContainer) {
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isExpanded = langBtn.getAttribute('aria-expanded') === 'true';
+      langBtn.setAttribute('aria-expanded', String(!isExpanded));
+      langMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!langContainer.contains(e.target)) {
+        langMenu.classList.add('hidden');
+        langBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        langMenu.classList.add('hidden');
+        langBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Si ya configuró sus categorías anteriormente, ir directo a buscar; si es primera vez, ir a categorías
+    const menuLinks = langMenu.querySelectorAll('a[data-lang]');
+    menuLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        try {
+          const saved = localStorage.getItem('todomigob_categories');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              e.preventDefault();
+              const langCode = link.getAttribute('data-lang');
+              const searchBase = langCode === 'es' ? '/buscar' : `/${langCode}/buscar`;
+              window.location.href = `${searchBase}?cats=${encodeURIComponent(parsed.join(','))}`;
+            }
+          }
+        } catch (err) {}
+      });
+    });
+  }
+</script>

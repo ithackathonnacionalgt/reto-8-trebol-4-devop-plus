@@ -11,5 +11,5 @@ export function validateNewsFile(input: unknown): NewsFile {
     });
   }
 
-  return result.data;
+  return result.data as NewsFile;
 }

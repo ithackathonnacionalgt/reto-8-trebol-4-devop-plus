@@ -21,6 +21,7 @@ export const localizedNewsContentSchema = z.object({
 export const newsItemSchema = z.object({
   id: nonEmptyText,
   originalUrl: z.string().url(),
+  imageUrl: z.string().url().optional(),
   source: nonEmptyText,
   sourceType: nonEmptyText,
   categoryId: categoryIdSchema,

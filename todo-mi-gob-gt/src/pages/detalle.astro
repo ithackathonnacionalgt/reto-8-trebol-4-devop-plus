@@ -1,0 +1,270 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getLocalizedPath } from '../i18n/utils';
+import { getNoticiasData } from '../services/noticias';
+
+const resultsUrl = getLocalizedPath('/resultados', 'es');
+const currentQuery = Astro.url.searchParams.get('q') || '';
+const backUrl = currentQuery ? `${resultsUrl}?q=${encodeURIComponent(currentQuery)}` : resultsUrl;
+
+const noticiasData = await getNoticiasData();
+const rawCategorias = noticiasData.availableCategories || [];
+const rawNoticias = noticiasData.news || [];
+const defaultItem = rawNoticias[0];
+const defaultTitle = defaultItem?.content?.es?.title || defaultItem?.contenido?.es?.titulo || '';
+const defaultSummary = defaultItem?.content?.es?.summary || defaultItem?.contenido?.es?.resumen || '';
+const defaultAction = defaultItem?.content?.es?.citizenAction || defaultItem?.contenido?.es?.accionCiudadana || '';
+const defaultSource = defaultItem?.source || defaultItem?.fuente || '';
+const defaultOriginalUrl = defaultItem?.originalUrl || defaultItem?.urlOriginal || '';
+const defaultTags = defaultItem?.tags || defaultItem?.etiquetas || [];
+const defaultCatId = defaultItem?.categoryId || defaultItem?.categoriaId || '';
+const defaultCatObj = rawCategorias.find((c) => c.id === defaultCatId);
+const defaultCategory = defaultCatObj?.name || defaultCatObj?.nombre || defaultSource;
+const defaultPublished = defaultItem?.publishedAt || defaultItem?.fechaPublicacion || '';
+const defaultImageUrl = defaultItem?.imageUrl || defaultItem?.imagenUrl || '';
+const noticias = rawNoticias;
+const categorias = rawCategorias;
+---
+
+<Layout title={`${defaultTitle} · TODOMIGOB`}>
+  <!-- Vista 4: Detalle de Artículo -->
+  <section class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col justify-center">
+    
+    <!-- Grid 2 columnas (Escritorio) y 1 columna vertical (Móvil) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-start">
+      
+      <!-- Columna Izquierda: Contenido y Enlaces -->
+      <div class="flex flex-col">
+        <!-- Botón circular de flecha 'Atrás' (<) que preserva la búsqueda -->
+        <div class="mb-3">
+          <a
+            id="detail-back-btn"
+            href={backUrl}
+            class="inline-flex w-10 h-10 rounded-full border-2 border-[#4997D0] items-center justify-center text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all cursor-pointer bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 group"
+            aria-label="Atrás"
+            title="Atrás"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
+          </a>
+        </div>
+
+        <!-- Titulo y Subtitulo -->
+        <h1 id="detail-title" class="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight leading-tight">
+          {defaultTitle}
+        </h1>
+        <p id="detail-source" class="mt-1 text-base sm:text-lg font-bold text-[#4997D0] dark:text-sky-300">
+          {defaultCategory} · {defaultSource}
+        </p>
+
+        <!-- Botón Accesible para Narrar todo el artículo en voz alta -->
+        <div class="mt-3">
+          <button
+            id="btn-speak-article"
+            type="button"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-sky-50 dark:bg-sky-950/60 border-2 border-[#4997D0] text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white dark:hover:bg-[#4997D0] dark:hover:text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="Escuchar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Bloque de texto descriptivo y acción ciudadana (tipografía ampliada para personas con baja visión) -->
+        <div class="mt-5 text-neutral-800 dark:text-neutral-200 leading-relaxed text-left space-y-4">
+          <p id="detail-content" class="text-lg sm:text-xl leading-relaxed">
+            {defaultSummary}
+          </p>
+          {defaultAction && (
+            <div id="detail-action-container" class="p-4 rounded-xl border-2 border-[#4997D0]/40 bg-sky-50/50 dark:bg-neutral-800/60">
+              <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-[#4997D0] dark:text-sky-300 mb-1.5">
+                Acción Ciudadana / Qué hacer
+              </h2>
+              <p id="detail-action" class="text-base sm:text-lg text-neutral-900 dark:text-neutral-100 leading-relaxed font-medium">
+                {defaultAction}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <!-- Enlace al sitio oficial (solo si está disponible) -->
+        <div class="mt-6 flex flex-col items-start gap-2 text-base font-bold text-[#4997D0] dark:text-sky-300">
+          {defaultOriginalUrl && (
+            <a id="detail-site-link" href={defaultOriginalUrl} target="_blank" rel="noopener noreferrer" class="hover:underline inline-flex items-center gap-1">
+              Sitio oficial ({defaultSource}) →
+            </a>
+          )}
+          <div id="detail-tags" class="mt-2 flex flex-wrap gap-2">
+            {defaultTags.map((tag: string) => (
+              <span class="px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-[#4997D0]/40 text-[#4997D0] dark:text-sky-300">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha (Escritorio) / Abajo (Móvil): Imagen del Bucket / Fallback elegante -->
+      <div class="w-full flex items-center justify-center">
+        <div id="detail-image-card" class="w-full max-w-sm aspect-square rounded-2xl border-2 border-[#4997D0] bg-white dark:bg-[#202020] shadow-xs overflow-hidden relative flex items-center justify-center">
+          <!-- Imagen principal de la noticia -->
+          <img
+            id="detail-image"
+            src={defaultImageUrl}
+            alt={defaultTitle}
+            class={`w-full h-full object-cover transition-opacity duration-300 ${defaultImageUrl ? 'opacity-100' : 'hidden opacity-0'}`}
+            loading="lazy"
+            onerror="this.classList.add('hidden'); this.classList.remove('opacity-100'); const ph = document.getElementById('detail-placeholder'); if (ph) { ph.classList.remove('hidden'); ph.classList.add('flex'); }"
+          />
+
+          <!-- Placeholder institucional cuando la noticia no tiene foto o si la imagen falla -->
+          <div
+            id="detail-placeholder"
+            class={`w-full h-full flex-col items-center justify-center p-6 text-center select-none bg-sky-50/40 dark:bg-neutral-800/50 ${defaultImageUrl ? 'hidden' : 'flex'}`}
+          >
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#4997D0]/10 dark:bg-sky-400/10 border border-[#4997D0]/30 flex items-center justify-center text-[#4997D0] dark:text-sky-300 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p id="detail-placeholder-source" class="text-sm sm:text-base font-bold text-neutral-800 dark:text-neutral-200">
+              {defaultSource || 'TODOMIGOB'}
+            </p>
+            <p id="detail-placeholder-cat" class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+              {defaultCategory}
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<!-- Script dinámico en cliente para resolver el ?id= y ?q= de la URL -->
+<script is:inline define:vars={{ noticias, categorias, resultsUrl }}>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const qParam = params.get('q');
+  
+  // Configurar botón volver para preservar el término de búsqueda
+  const backBtn = document.getElementById('detail-back-btn');
+  if (backBtn) {
+    if (qParam) {
+      backBtn.href = `${resultsUrl}?q=${encodeURIComponent(qParam)}`;
+    }
+    backBtn.addEventListener('click', (e) => {
+      if (window.history.length > 1 && document.referrer && document.referrer.includes('/resultados')) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+  }
+
+  if (id) {
+    const item = noticias.find((n) => n.id === id);
+    if (item) {
+      const catId = item.categoryId || item.categoriaId;
+      const cat = categorias.find((c) => c.id === catId);
+      const catName = cat ? (cat.name || cat.nombre) : '';
+      
+      const titleEl = document.getElementById('detail-title');
+      const sourceEl = document.getElementById('detail-source');
+      const contentEl = document.getElementById('detail-content');
+      const actionEl = document.getElementById('detail-action');
+      const actionContainer = document.getElementById('detail-action-container');
+      const siteLinkEl = document.getElementById('detail-site-link');
+      const tagsEl = document.getElementById('detail-tags');
+
+      const title = item.content?.es?.title || item.contenido?.es?.titulo || '';
+      const summary = item.content?.es?.summary || item.contenido?.es?.resumen || '';
+      const action = item.content?.es?.citizenAction || item.contenido?.es?.accionCiudadana || '';
+      const source = item.source || item.fuente || '';
+      const originalUrl = item.originalUrl || item.urlOriginal || '';
+      const tags = item.tags || item.etiquetas || [];
+
+      if (titleEl) titleEl.textContent = title;
+      if (sourceEl) sourceEl.textContent = `${catName} · ${source}`;
+      if (contentEl) contentEl.textContent = summary;
+      if (actionEl && action) {
+        actionEl.textContent = action;
+        if (actionContainer) actionContainer.classList.remove('hidden');
+      } else if (actionContainer) {
+        actionContainer.classList.add('hidden');
+      }
+
+      // Actualizar imagen o placeholder
+      const imageEl = document.getElementById('detail-image');
+      const placeholderEl = document.getElementById('detail-placeholder');
+      const placeholderSourceEl = document.getElementById('detail-placeholder-source');
+      const placeholderCatEl = document.getElementById('detail-placeholder-cat');
+      const imageUrl = item.imageUrl || item.imagenUrl || '';
+
+      if (placeholderSourceEl) placeholderSourceEl.textContent = source || 'TODOMIGOB';
+      if (placeholderCatEl) placeholderCatEl.textContent = catName;
+
+      if (imageEl && placeholderEl) {
+        if (imageUrl) {
+          imageEl.src = imageUrl;
+          imageEl.alt = title;
+          imageEl.classList.remove('hidden');
+          imageEl.classList.add('opacity-100');
+          placeholderEl.classList.add('hidden');
+          placeholderEl.classList.remove('flex');
+        } else {
+          imageEl.src = '';
+          imageEl.classList.add('hidden');
+          imageEl.classList.remove('opacity-100');
+          placeholderEl.classList.remove('hidden');
+          placeholderEl.classList.add('flex');
+        }
+      }
+
+      if (siteLinkEl) {
+        if (originalUrl) {
+          siteLinkEl.href = originalUrl;
+          siteLinkEl.textContent = `Sitio oficial (${source})`;
+          siteLinkEl.classList.remove('hidden');
+        } else {
+          siteLinkEl.classList.add('hidden');
+        }
+      }
+
+      if (tagsEl) {
+        tagsEl.innerHTML = '';
+        if (tags && tags.length > 0) {
+          tags.forEach((tag) => {
+            const span = document.createElement('span');
+            span.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium border border-[#4997D0]/40 text-[#4997D0] dark:text-sky-300';
+            span.textContent = '#' + tag;
+            tagsEl.appendChild(span);
+          });
+          tagsEl.classList.remove('hidden');
+        } else {
+          tagsEl.classList.add('hidden');
+        }
+      }
+    }
+
+    // Configuración del botón para narrar todo el artículo
+    const speakBtn = document.getElementById('btn-speak-article');
+    if (speakBtn) {
+      speakBtn.addEventListener('click', () => {
+        const title = document.getElementById('detail-title')?.innerText || '';
+        const source = document.getElementById('detail-source')?.innerText || '';
+        const content = document.getElementById('detail-content')?.innerText || '';
+        const actionElem = document.getElementById('detail-action');
+        const action = actionElem && !actionElem.parentElement?.classList.contains('hidden')
+          ? `Qué hacer: ${actionElem.innerText}`
+          : '';
+
+        const fullText = `${title}. Categoría: ${source}. ${content}. ${action}`;
+        if (window.VoiceNarrator) {
+          window.VoiceNarrator.speak(fullText);
+        }
+      });
+    }
+  }
+</script>

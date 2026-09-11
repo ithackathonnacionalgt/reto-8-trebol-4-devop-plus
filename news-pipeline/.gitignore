@@ -6,3 +6,4 @@ coverage/
 !.env.example
 output/*.json
 *.log
+docs/*-source-notes.md

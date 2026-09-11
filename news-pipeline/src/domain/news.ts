@@ -9,6 +9,7 @@ export interface LocalizedNewsContent {
 export interface NewsItem {
   id: string;
   originalUrl: string;
+  imageUrl?: string;
   source: string;
   sourceType: string;
   categoryId: CategoryId;

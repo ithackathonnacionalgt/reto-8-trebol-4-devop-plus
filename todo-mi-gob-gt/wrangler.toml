@@ -1,0 +1,11 @@
+name = "todomigobgt"
+main = "./worker.js"
+compatibility_date = "2026-09-10"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[r2_buckets]]
+binding = "DB"
+bucket_name = "todomigobgt"

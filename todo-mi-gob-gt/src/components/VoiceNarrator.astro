@@ -1,0 +1,536 @@
+---
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'es' } = Astro.props;
+---
+
+<!-- 1. Botón Flotante de Selección (solo icono de altavoz, sin palabras) -->
+<div
+  id="tts-selection-bubble"
+  class="fixed z-50 hidden items-center justify-center w-11 h-11 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-full shadow-2xl border-2 border-[#4997D0] select-none cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-150 hover:scale-110 active:scale-95"
+  style="top: -9999px; left: -9999px;"
+  role="button"
+  aria-label="Escuchar"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#4997D0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+  </svg>
+</div>
+
+<!-- 2. Controles de Voz Flotantes (Solo Símbolos, sin menús complejos ni palabras) -->
+<aside
+  id="tts-floating-widget"
+  class="fixed bottom-5 right-5 z-40 flex items-center gap-2 select-none print:hidden"
+  aria-label="Lector de voz"
+>
+  <!-- Controles mientras habla: Pausar / Continuar y Detener (solo símbolos) -->
+  <div
+    id="tts-active-controls"
+    class="hidden items-center gap-1.5 bg-white dark:bg-[#202020] p-1.5 px-3 rounded-full border-2 border-[#4997D0] shadow-xl text-neutral-800 dark:text-neutral-100 transition-all duration-200"
+  >
+    <!-- Ondas visuales animadas de sonido -->
+    <div class="flex items-center gap-0.5 px-1 text-[#4997D0]" aria-hidden="true">
+      <span class="w-1 h-3 bg-[#4997D0] rounded-full animate-bounce [animation-delay:0ms]"></span>
+      <span class="w-1 h-4.5 bg-[#4997D0] rounded-full animate-bounce [animation-delay:150ms]"></span>
+      <span class="w-1 h-2 bg-[#4997D0] rounded-full animate-bounce [animation-delay:300ms]"></span>
+    </div>
+
+    <!-- Símbolo Pausar / Reanudar (Barras || / Triángulo >) -->
+    <button
+      id="tts-btn-pause-resume"
+      type="button"
+      class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-sky-50 dark:hover:bg-neutral-800 text-[#4997D0] dark:text-sky-400 transition-colors cursor-pointer"
+      aria-label="Pausar o reanudar"
+    >
+      <!-- Icono Pausar -->
+      <svg id="tts-icon-pause" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
+      </svg>
+      <!-- Icono Reanudar -->
+      <svg id="tts-icon-resume" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="6 4 20 12 6 20 6 4" />
+      </svg>
+    </button>
+
+    <!-- Símbolo Detener (Cuadrado ■) -->
+    <button
+      id="tts-btn-stop"
+      type="button"
+      class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 text-red-500 transition-colors cursor-pointer"
+      aria-label="Detener"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="5" y="5" width="14" height="14" rx="2" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Botón Principal: Activar / Desactivar Lectura por Toque (Solo Símbolo de Altavoz) -->
+  <div class="relative">
+    <!-- Ondas pulsantes de lectura activa -->
+    <span
+      id="tts-pulse-ring"
+      class="hidden absolute inset-0 rounded-full bg-[#4997D0] animate-ping opacity-35 pointer-events-none"
+      aria-hidden="true"
+    ></span>
+
+    <button
+      id="tts-main-btn"
+      type="button"
+      class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-[#202020] text-[#4997D0] border-3 border-[#4997D0] shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#4997D0]/40 group"
+      aria-label="Lector en voz alta"
+      aria-pressed="false"
+    >
+      <!-- Icono Altavoz Apagado / Encendido -->
+      <svg id="tts-main-icon" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+      </svg>
+
+      <!-- Indicador visual cuando el modo de lectura está encendido -->
+      <span
+        id="tts-active-dot"
+        class="hidden absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-[#202020] rounded-full"
+        aria-hidden="true"
+      ></span>
+    </button>
+  </div>
+</aside>
+
+<!-- Estilo visual para resaltar lo que se está leyendo -->
+<style is:global>
+  .tts-highlight-reading {
+    outline: 3px solid #4997D0 !important;
+    outline-offset: 2px !important;
+    background-color: rgba(73, 151, 208, 0.12) !important;
+    border-radius: 8px !important;
+    transition: all 0.25s ease-in-out !important;
+  }
+
+  body.tts-touch-mode-active {
+    cursor: pointer !important;
+  }
+</style>
+
+<!-- Lógica Directa de Lectura en Voz Alta -->
+<script is:inline>
+  (function () {
+    const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
+    let currentVoice = null;
+    let isTouchToReadActive = false;
+    let selectedTextBuffer = '';
+    let currentAudio = null;
+    let keepAliveTimer = null;
+
+    const bubble = document.getElementById('tts-selection-bubble');
+    const mainBtn = document.getElementById('tts-main-btn');
+    const mainIcon = document.getElementById('tts-main-icon');
+    const activeDot = document.getElementById('tts-active-dot');
+    const pulseRing = document.getElementById('tts-pulse-ring');
+    const activeControls = document.getElementById('tts-active-controls');
+    const pauseResumeBtn = document.getElementById('tts-btn-pause-resume');
+    const iconPause = document.getElementById('tts-icon-pause');
+    const iconResume = document.getElementById('tts-icon-resume');
+    const stopBtn = document.getElementById('tts-btn-stop');
+
+    // Cargar voces en español con priorización segura
+    function loadVoices() {
+      if (!synth) return;
+      const all = synth.getVoices();
+      if (!all || all.length === 0) return;
+
+      const spanish = all.filter((v) => {
+        const lang = (v.lang || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return lang.startsWith('es') || name.includes('spanish') || name.includes('español');
+      });
+
+      const pool = spanish.length > 0 ? spanish : all;
+      currentVoice =
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-gt')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-419')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-mx')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().includes('es-us')) ||
+        pool.find((v) => (v.name || '').toLowerCase().includes('natural') && (v.lang || '').startsWith('es')) ||
+        pool.find((v) => (v.lang || '').toLowerCase().startsWith('es')) ||
+        pool[0] ||
+        null;
+    }
+
+    if (synth) {
+      loadVoices();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadVoices;
+      }
+      // Reintentos para navegadores donde getVoices() es asíncrono
+      let voiceRetries = 0;
+      const voiceInterval = setInterval(() => {
+        voiceRetries++;
+        loadVoices();
+        if (currentVoice || voiceRetries > 8) clearInterval(voiceInterval);
+      }, 250);
+    }
+
+    function cleanText(raw) {
+      if (!raw) return '';
+      return raw
+        .replace(/https?:\/\/[^\s]+/g, 'enlace')
+        .replace(/#([\wáéíóúÁÉÍÓÚñÑ]+)/g, 'etiqueta $1')
+        .replace(/[•·—–_]/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function stopKeepAlive() {
+      if (keepAliveTimer) {
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = null;
+      }
+    }
+
+    function startKeepAlive() {
+      stopKeepAlive();
+      // Bugfix para Chromium: interrupciones automáticas a los 14 segundos
+      keepAliveTimer = setInterval(() => {
+        if (synth && synth.speaking && !synth.paused) {
+          synth.pause();
+          synth.resume();
+        }
+      }, 10000);
+    }
+
+    function stopAudioFallback() {
+      if (currentAudio) {
+        try {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        } catch (e) {}
+        currentAudio = null;
+      }
+    }
+
+    // Fallback de Audio HTML5 si SpeechSynthesis falla o no tiene voces locales
+    function speakViaAudioFallback(text, highlightElem) {
+      stop();
+      const prepared = cleanText(text).slice(0, 320);
+      if (!prepared) return;
+
+      const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=es&client=tw-ob&q=' + encodeURIComponent(prepared);
+      const audio = new Audio(url);
+      currentAudio = audio;
+
+      if (highlightElem) {
+        document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
+          el.classList.remove('tts-highlight-reading');
+        });
+        highlightElem.classList.add('tts-highlight-reading');
+      }
+
+      audio.onplay = () => updateState(true, false);
+      audio.onended = () => {
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        currentAudio = null;
+      };
+      audio.onerror = (err) => {
+        console.warn('[Audio TTS Fallback Error]', err);
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        currentAudio = null;
+      };
+
+      audio.play().catch((err) => {
+        console.warn('[Audio Play Error]', err);
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+      });
+    }
+
+    function speak(text, highlightElem = null) {
+      const prepared = cleanText(text);
+      if (!prepared) return;
+
+      // Si el navegador no soporta síntesis de voz, usar fallback de audio
+      if (!synth) {
+        speakViaAudioFallback(prepared, highlightElem);
+        return;
+      }
+
+      // Detener audio o narración anterior sin doble cancel
+      stopAudioFallback();
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+      }
+
+      // Esperar un tick de 30ms para que Chromium procese la cancelación previa
+      setTimeout(() => {
+        if (!currentVoice) loadVoices();
+
+        const utterance = new SpeechSynthesisUtterance(prepared);
+        // Prevenir Garbage Collection en V8 (Brave / Chrome)
+        window._activeUtterance = utterance;
+
+        if (currentVoice) {
+          utterance.voice = currentVoice;
+          utterance.lang = currentVoice.lang || 'es-419';
+        } else {
+          // Fallback universal: es-419 o es-ES en vez de es-GT (que falla si no está instalada)
+          utterance.lang = 'es-419';
+        }
+
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+
+        if (highlightElem) {
+          document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
+            el.classList.remove('tts-highlight-reading');
+          });
+          highlightElem.classList.add('tts-highlight-reading');
+        }
+
+        utterance.onstart = () => {
+          startKeepAlive();
+          updateState(true, false);
+        };
+
+        utterance.onend = () => {
+          stopKeepAlive();
+          window._activeUtterance = null;
+          updateState(false, false);
+          if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+        };
+
+        utterance.onerror = (e) => {
+          stopKeepAlive();
+          window._activeUtterance = null;
+          updateState(false, false);
+          if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
+
+          if (e.error === 'interrupted' || e.error === 'canceled') {
+            return;
+          }
+
+          console.warn('[SpeechSynthesis Error]', e.error, 'Activando fallback de audio...');
+          speakViaAudioFallback(prepared, highlightElem);
+        };
+
+        utterance.onpause = () => updateState(false, true);
+        utterance.onresume = () => updateState(true, false);
+
+        // Si estaba pausado, desbloquear antes de hablar
+        if (synth.paused) {
+          synth.resume();
+        }
+
+        synth.speak(utterance);
+      }, 35);
+    }
+
+    function stop() {
+      stopKeepAlive();
+      stopAudioFallback();
+      if (synth) {
+        synth.cancel();
+      }
+      window._activeUtterance = null;
+      updateState(false, false);
+      document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
+        el.classList.remove('tts-highlight-reading');
+      });
+    }
+
+    function pause() {
+      if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();
+        updateState(false, true);
+        return;
+      }
+      if (synth && synth.speaking) {
+        synth.pause();
+        updateState(false, true);
+      }
+    }
+
+    function resume() {
+      if (currentAudio && currentAudio.paused) {
+        currentAudio.play().catch(() => {});
+        updateState(true, false);
+        return;
+      }
+      if (synth && synth.paused) {
+        synth.resume();
+        updateState(true, false);
+      }
+    }
+
+    function updateState(isPlaying, isPaused) {
+      if (isPlaying) {
+        activeControls?.classList.remove('hidden');
+        activeControls?.classList.add('flex');
+        pulseRing?.classList.remove('hidden');
+        iconPause?.classList.remove('hidden');
+        iconResume?.classList.add('hidden');
+      } else if (isPaused) {
+        activeControls?.classList.remove('hidden');
+        activeControls?.classList.add('flex');
+        pulseRing?.classList.add('hidden');
+        iconPause?.classList.add('hidden');
+        iconResume?.classList.remove('hidden');
+      } else {
+        activeControls?.classList.add('hidden');
+        activeControls?.classList.remove('flex');
+        pulseRing?.classList.add('hidden');
+        iconPause?.classList.remove('hidden');
+        iconResume?.classList.add('hidden');
+      }
+    }
+
+    // Activar o desactivar el modo de tocar para escuchar
+    function setTouchToReadMode(active) {
+      isTouchToReadActive = active;
+      if (active) {
+        document.body.classList.add('tts-touch-mode-active');
+        mainBtn?.classList.remove('bg-white', 'dark:bg-[#202020]', 'text-[#4997D0]');
+        mainBtn?.classList.add('bg-[#4997D0]', 'text-white');
+        activeDot?.classList.remove('hidden');
+        mainBtn?.setAttribute('aria-pressed', 'true');
+      } else {
+        document.body.classList.remove('tts-touch-mode-active');
+        mainBtn?.classList.remove('bg-[#4997D0]', 'text-white');
+        mainBtn?.classList.add('bg-white', 'dark:bg-[#202020]', 'text-[#4997D0]');
+        activeDot?.classList.add('hidden');
+        mainBtn?.setAttribute('aria-pressed', 'false');
+        stop();
+      }
+    }
+
+    // Clic en el botón principal: alternar lectura por toque
+    mainBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setTouchToReadMode(!isTouchToReadActive);
+    });
+
+    // Leer cualquier elemento al tocarlo en pantalla si el modo está encendido
+    document.addEventListener(
+      'click',
+      (e) => {
+        if (!isTouchToReadActive) return;
+
+        // No interceptar clics sobre los botones del lector
+        if (
+          (mainBtn && mainBtn.contains(e.target)) ||
+          (activeControls && activeControls.contains(e.target)) ||
+          (bubble && bubble.contains(e.target))
+        ) {
+          return;
+        }
+
+        const target = e.target;
+        const textElem = target.closest('h1, h2, h3, h4, p, li, button, a, [data-title], .result-card') || target;
+
+        let content = '';
+        if (textElem.dataset && textElem.dataset.title) {
+          content = `${textElem.dataset.title}. ${textElem.dataset.summary || ''}`;
+        } else {
+          content = textElem.innerText || textElem.textContent || '';
+        }
+
+        content = content.trim();
+        if (content.length > 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          speak(content, textElem);
+        }
+      },
+      true
+    );
+
+    // Botones de control durante reproducción
+    pauseResumeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentAudio) {
+        if (currentAudio.paused) resume();
+        else pause();
+        return;
+      }
+      if (synth && synth.paused) {
+        resume();
+      } else {
+        pause();
+      }
+    });
+
+    stopBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stop();
+    });
+
+    // Burbuja flotante al seleccionar texto (solo símbolo)
+    function handleSelection(e) {
+      if (activeControls && activeControls.contains(e.target)) return;
+      if (bubble && bubble.contains(e.target)) return;
+
+      const sel = window.getSelection();
+      const text = sel ? sel.toString().trim() : '';
+
+      if (!text || text.length < 1) {
+        if (bubble) bubble.classList.add('hidden');
+        return;
+      }
+
+      selectedTextBuffer = text;
+
+      try {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect && rect.width > 0) {
+          const posX = rect.left + rect.width / 2;
+          let posY = rect.top - 10;
+          if (posY < 50) posY = rect.bottom + 45;
+
+          const screenWidth = window.innerWidth;
+          const clampedX = Math.max(40, Math.min(screenWidth - 40, posX));
+
+          if (bubble) {
+            bubble.style.top = `${posY}px`;
+            bubble.style.left = `${clampedX}px`;
+            bubble.classList.remove('hidden');
+            bubble.classList.add('flex');
+          }
+        }
+      } catch (err) {
+        if (bubble) bubble.classList.add('hidden');
+      }
+    }
+
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (!sel || !sel.toString().trim()) {
+        if (bubble) bubble.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('mouseup', handleSelection);
+    document.addEventListener('touchend', (e) => {
+      setTimeout(() => handleSelection(e), 100);
+    });
+
+    bubble?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (selectedTextBuffer) {
+        speak(selectedTextBuffer);
+      }
+      if (bubble) bubble.classList.add('hidden');
+    });
+
+    // Exponer API global limpia
+    window.VoiceNarrator = {
+      speak: (text, elem) => speak(text, elem),
+      stop: () => stop(),
+      pause: () => pause(),
+      resume: () => resume(),
+    };
+  })();
+</script>

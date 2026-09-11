@@ -1,0 +1,308 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations, getLocalizedPath } from '../../i18n/utils';
+import { getNoticiasData } from '../../services/noticias';
+
+const t = useTranslations('kch');
+const homeUrl = getLocalizedPath('/', 'kch');
+const categoriesUrl = getLocalizedPath('/categorias', 'kch');
+const resultsUrl = getLocalizedPath('/resultados', 'kch');
+const detailBaseUrl = getLocalizedPath('/detalle', 'kch');
+
+const noticiasData = await getNoticiasData();
+const categorias = noticiasData.availableCategories || [];
+const noticias = noticiasData.news || [];
+---
+
+<Layout title="Tzukuj · TODOMIGOB">
+  <!-- Vista 3: Búsqueda (K'iche') -->
+  <section class="flex-1 flex flex-col items-center justify-start px-4 py-4 sm:py-6 max-w-2xl mx-auto w-full text-center">
+    
+    <!-- Barra superior con botón volver a inicio y botón de Preferencias -->
+    <div class="w-full flex items-center justify-between max-w-md mb-6 sm:mb-8">
+      <a
+        href={homeUrl}
+        class="inline-flex w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#4997D0] items-center justify-center text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all cursor-pointer bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 group"
+        aria-label="Tzalijik"
+        title="Tzalijik"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+
+      <!-- Botón superior de Preferencias (K'iche') -->
+      <a
+        href={categoriesUrl}
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[#4997D0] text-sm font-bold text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
+        title="Ucha'ik taq uwach patan"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+        <span>{t('preferences.button')}</span>
+      </a>
+    </div>
+
+    <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white max-w-md mx-auto mb-6 leading-tight">
+      {t('search.instruction')}
+    </h1>
+
+    <form id="search-form" action={resultsUrl} method="GET" class="w-full max-w-md flex flex-col items-center gap-4 mb-10">
+      <div class="w-full">
+        <input
+          type="text"
+          name="q"
+          placeholder={t('search.placeholder')}
+          autofocus
+          class="w-full px-4 py-3.5 border-2 border-[#4997D0] rounded-xl text-base sm:text-lg text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#4997D0] bg-white dark:bg-[#202020] shadow-xs"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-40 sm:w-48 py-3 px-6 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-base sm:text-lg rounded-xl transition-colors cursor-pointer shadow-md active:translate-y-0.5"
+      >
+        {t('search.button')}
+      </button>
+    </form>
+
+    <!-- Sección de Noticias según Preferencias con Scroll Infinito (K'iche') -->
+    <div class="w-full max-w-xl text-left pt-6 border-t border-neutral-200 dark:border-neutral-800">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 id="feed-title" class="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white tracking-tight">
+            Taq ch'ob'oj che utz kacha'o
+          </h2>
+          <p id="feed-subtitle" class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-0.5">
+            Patan xuquje' k'ulmatajem rech taq awach cha'om
+          </p>
+        </div>
+        <a
+          href={categoriesUrl}
+          class="text-xs sm:text-sm font-bold text-[#4997D0] dark:text-sky-300 hover:underline flex items-center gap-1 shrink-0 ml-2"
+        >
+          <span>{t('preferences.button')}</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <!-- Contenedor dinámico de tarjetas -->
+      <div id="infinite-news-container" class="space-y-4"></div>
+
+      <!-- Sentinel para Scroll Infinito -->
+      <div id="infinite-scroll-sentinel" class="py-6 flex flex-col items-center justify-center text-neutral-400">
+        <div id="infinite-scroll-spinner" class="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+          <svg class="w-5 h-5 animate-spin text-[#4997D0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Katzukuxik más novedades...</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</Layout>
+
+<!-- Script dinámico de Preferencias y Scroll Infinito (K'iche') -->
+<script is:inline define:vars={{ noticias, categorias, detailBaseUrl }}>
+  const container = document.getElementById('infinite-news-container');
+  const sentinel = document.getElementById('infinite-scroll-sentinel');
+  const feedTitle = document.getElementById('feed-title');
+  const feedSubtitle = document.getElementById('feed-subtitle');
+
+  // Obtener preferencias guardadas del usuario o de parámetros URL
+  let preferredCats = [];
+  try {
+    const saved = localStorage.getItem('todomigob_categories');
+    if (saved) {
+      preferredCats = JSON.parse(saved);
+      if (!Array.isArray(preferredCats)) preferredCats = [];
+    }
+  } catch (e) {
+    preferredCats = [];
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const catsFromUrl = urlParams.get('cats');
+  if (catsFromUrl) {
+    const splitCats = catsFromUrl.split(',').map(c => c.trim()).filter(Boolean);
+    if (splitCats.length > 0) {
+      preferredCats = splitCats;
+      try {
+        localStorage.setItem('todomigob_categories', JSON.stringify(preferredCats));
+      } catch (e) {}
+    }
+  }
+
+  if (feedTitle && feedSubtitle) {
+    if (preferredCats.length > 0) {
+      feedTitle.textContent = "Taq ch'ob'oj che utz kacha'o";
+      feedSubtitle.textContent = "Patan xuquje' k'ulmatajem rech taq awach cha'om";
+    } else {
+      feedTitle.textContent = "K'ak'al taq ub'ixik";
+      feedSubtitle.textContent = "Juntaq chik patan xuquje' ub'ixik";
+    }
+  }
+
+  // Filtrar el catálogo: si hay preferencias activas, SOLO mostrar noticias de las categorías preferidas
+  let feedPool = [];
+  if (Array.isArray(noticias) && noticias.length > 0) {
+    if (preferredCats.length > 0) {
+      feedPool = noticias.filter((item) => {
+        const catId = item.categoryId || item.categoriaId;
+        return preferredCats.includes(catId);
+      });
+    } else {
+      feedPool = [...noticias];
+    }
+  }
+
+  function getCategoryName(catId) {
+    const cat = (categorias || []).find((c) => c.id === catId);
+    return cat ? (cat.nameKch || cat.nombreKch || cat.name || cat.nombre) : '';
+  }
+
+  function createCardElement(item) {
+    const catId = item.categoryId || item.categoriaId;
+    const catName = getCategoryName(catId) || item.source || item.fuente || 'Gobierno';
+    const content = item.content?.quc || item.content?.kch || item.content?.es || item.contenido?.quc || item.contenido?.es || {};
+    const title = content.title || content.titulo || '';
+    const summary = content.summary || content.resumen || '';
+    const source = item.source || item.fuente || '';
+    const isUrgent = item.urgent !== undefined ? item.urgent : (item.urgente || false);
+    const imageUrl = item.imageUrl || item.imagenUrl || '';
+    const detailUrl = `${detailBaseUrl}?id=${encodeURIComponent(item.id)}`;
+
+    const article = document.createElement('article');
+    article.className = 'feed-card group rounded-2xl border-2 border-neutral-200 dark:border-neutral-800 hover:border-[#4997D0] dark:hover:border-[#4997D0] bg-white dark:bg-[#202020] p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200';
+    article.setAttribute('data-id', item.id);
+    article.setAttribute('data-title', title);
+    article.setAttribute('data-summary', summary);
+    article.setAttribute('data-category', catName);
+
+    article.innerHTML = `
+      <div class="flex items-center justify-between gap-2 mb-2.5">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-[#4997D0] dark:text-sky-300 border border-[#4997D0]/30">
+          ${catName}
+        </span>
+        <div class="flex items-center gap-1.5">
+          ${isUrgent ? '<span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-300">Aninaq</span>' : ''}
+          <button
+            type="button"
+            class="js-feed-speak-btn inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-400 hover:text-[#4997D0] hover:bg-sky-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            title="Utatab'exik / Escuchar"
+            aria-label="Utatab'exik / Escuchar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-3 sm:gap-4 items-start">
+        <div class="flex-1 min-w-0">
+          <h3 class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
+            <a href="${detailUrl}" class="hover:underline">${title}</a>
+          </h3>
+          <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 mt-1.5 leading-relaxed line-clamp-2">
+            ${summary}
+          </p>
+          <div class="mt-3 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+            <span class="font-medium">${source}</span>
+            <a href="${detailUrl}" class="font-bold text-[#4997D0] dark:text-sky-300 hover:underline flex items-center gap-1">
+              Chajij →
+            </a>
+          </div>
+        </div>
+        ${imageUrl ? `
+          <a href="${detailUrl}" class="card-image-wrapper shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-sky-50/40 dark:bg-neutral-800 block">
+            <img
+              src="${imageUrl}"
+              alt="${title}"
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onerror="this.parentElement.style.display='none'"
+            />
+          </a>
+        ` : ''}
+      </div>
+    `;
+
+    return article;
+  }
+
+  let currentIndex = 0;
+  const BATCH_SIZE = 4;
+  let isLoading = false;
+
+  function loadNextBatch() {
+    if (!container || isLoading) return;
+    if (feedPool.length === 0) {
+      if (sentinel) sentinel.style.display = 'none';
+      if (!container.hasChildNodes()) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'col-span-full py-8 text-center text-neutral-500 dark:text-neutral-400';
+        emptyMsg.innerHTML = `
+          <p class="text-base font-medium">Maj taq ub'ixik pa taq le ach'ob'oj cha'om.</p>
+          <a href="${categoriesUrl}" class="inline-block mt-2 text-sm font-bold text-[#4997D0] dark:text-sky-300 hover:underline">
+            K'exa' taq ach'ob'oj →
+          </a>
+        `;
+        container.appendChild(emptyMsg);
+      }
+      return;
+    }
+    isLoading = true;
+
+    const countToLoad = Math.min(BATCH_SIZE, feedPool.length);
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < countToLoad; i++) {
+      const item = feedPool[(currentIndex + i) % feedPool.length];
+      const card = createCardElement(item);
+      fragment.appendChild(card);
+    }
+
+    currentIndex += countToLoad;
+    container.appendChild(fragment);
+
+    setTimeout(() => {
+      isLoading = false;
+    }, 250);
+  }
+
+  loadNextBatch();
+
+  if (sentinel && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry && entry.isIntersecting) {
+        loadNextBatch();
+      }
+    }, {
+      rootMargin: '250px',
+    });
+    observer.observe(sentinel);
+  }
+
+  document.addEventListener('click', (e) => {
+    const speakBtn = e.target.closest('.js-feed-speak-btn');
+    if (speakBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const card = speakBtn.closest('.feed-card');
+      if (card) {
+        const title = card.getAttribute('data-title') || '';
+        const summary = card.getAttribute('data-summary') || '';
+        const category = card.getAttribute('data-category') || '';
+        const textToRead = `${title}. ${category}. ${summary}`;
+        if (window.VoiceNarrator) {
+          window.VoiceNarrator.speak(textToRead, card);
+        }
+      }
+    }
+  });
+</script>

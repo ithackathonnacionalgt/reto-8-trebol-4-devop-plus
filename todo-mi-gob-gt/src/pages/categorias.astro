@@ -1,0 +1,180 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getLocalizedPath } from '../i18n/utils';
+import { getNoticiasData } from '../services/noticias';
+import { getApiBaseUrl } from '../services/api';
+
+const searchBaseUrl = getLocalizedPath('/buscar', 'es');
+const noticiasData = await getNoticiasData();
+const categorias = noticiasData.availableCategories || [];
+const defaultApiUrl = getApiBaseUrl();
+---
+
+<Layout title="Seleccionar Categorías · TODOMIGOB">
+  <!-- Nueva Ventana: Selección de Múltiples Categorías (solo título y toggle) -->
+  <section class="max-w-2xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6 flex-1 flex flex-col items-center justify-center">
+    
+    <!-- Barra superior con botón volver al buscador -->
+    <div class="w-full flex items-center justify-start mb-3 sm:mb-4">
+      <a
+        href={searchBaseUrl}
+        class="inline-flex w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#4997D0] items-center justify-center text-[#4997D0] dark:text-sky-300 hover:bg-[#4997D0] hover:text-white transition-all cursor-pointer bg-white dark:bg-[#202020] shadow-xs hover:scale-105 active:scale-95 group"
+        aria-label="Volver al buscador"
+        title="Volver al buscador"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Título y Subtítulo de la ventana -->
+    <div class="text-center max-w-lg mx-auto mb-4 sm:mb-5">
+      <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight leading-tight">
+        Selecciona tus categorías
+      </h1>
+      <p class="mt-1.5 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed">
+        Elige las categorías que te interesan. Puedes seleccionar varias pulsando sobre ellas.
+      </p>
+    </div>
+
+    <!-- Lista de categorías: SOLO EL TÍTULO con selección toggle -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 w-full mb-6 sm:mb-8" id="categories-grid">
+      {categorias.map((cat) => (
+        <button
+          type="button"
+          data-id={cat.id}
+          data-name={cat.name || cat.nombre}
+          class="category-card flex items-center justify-between py-3.5 px-4 sm:py-4 sm:px-5 rounded-xl border-2 border-[#4997D0] bg-white dark:bg-[#202020] text-neutral-900 dark:text-white transition-all cursor-pointer shadow-xs hover:scale-[1.01] active:scale-[0.99] select-none text-left"
+        >
+          <span class="font-bold text-base sm:text-lg category-title">
+            {cat.name || cat.nombre}
+          </span>
+
+          <!-- Indicador visual de selección (Check circular) -->
+          <div class="check-icon w-6 h-6 rounded-full border-2 border-[#4997D0] flex items-center justify-center shrink-0 transition-colors ml-3">
+            <svg class="check-svg hidden w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </button>
+      ))}
+    </div>
+
+    <!-- Botón de acción: Guardar seleccionadas y Continuar -->
+    <div class="w-full flex items-center justify-center">
+      <button
+        id="btn-save-categories"
+        type="button"
+        class="w-full sm:w-64 py-3.5 px-8 bg-[#4997D0] hover:bg-sky-600 text-white font-bold text-base sm:text-lg rounded-xl transition-all cursor-pointer shadow-md active:translate-y-0.5 text-center"
+      >
+        Continuar
+      </button>
+    </div>
+
+  </section>
+</Layout>
+
+<!-- Script interactivo de selección múltiple con localStorage -->
+<script is:inline define:vars={{ defaultApiUrl }}>
+  let selected = [];
+
+  // Recuperar selección previa si existe
+  try {
+    const saved = localStorage.getItem('todomigob_categories');
+    if (saved) {
+      selected = JSON.parse(saved);
+      if (!Array.isArray(selected)) selected = [];
+    }
+  } catch (e) {
+    selected = [];
+  }
+
+  const cards = document.querySelectorAll('.category-card');
+  const saveBtn = document.getElementById('btn-save-categories');
+
+  function renderState() {
+    cards.forEach((card) => {
+      const id = card.getAttribute('data-id');
+      const isSelected = selected.includes(id);
+      const checkIcon = card.querySelector('.check-icon');
+      const checkSvg = card.querySelector('.check-svg');
+
+      if (isSelected) {
+        card.classList.add('bg-[#4997D0]', 'text-white');
+        card.classList.remove('bg-white', 'dark:bg-[#202020]', 'text-neutral-900', 'dark:text-white');
+        if (checkIcon) {
+          checkIcon.classList.add('bg-white', 'border-white');
+          checkIcon.classList.remove('border-[#4997D0]');
+        }
+        if (checkSvg) {
+          checkSvg.classList.remove('hidden');
+          checkSvg.classList.add('text-[#4997D0]');
+          checkSvg.classList.remove('text-white');
+        }
+      } else {
+        card.classList.remove('bg-[#4997D0]', 'text-white');
+        card.classList.add('bg-white', 'dark:bg-[#202020]', 'text-neutral-900', 'dark:text-white');
+        if (checkIcon) {
+          checkIcon.classList.remove('bg-white', 'border-white');
+          checkIcon.classList.add('border-[#4997D0]');
+        }
+        if (checkSvg) {
+          checkSvg.classList.add('hidden');
+        }
+      }
+    });
+
+    if (saveBtn) {
+      saveBtn.textContent = selected.length > 0 
+        ? `Continuar con ${selected.length} categoría${selected.length > 1 ? 's' : ''}`
+        : 'Continuar con todas';
+    }
+  }
+
+  // Toggle de selección al hacer clic
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-id');
+      if (selected.includes(id)) {
+        selected = selected.filter((item) => item !== id);
+      } else {
+        selected.push(id);
+      }
+      renderState();
+    });
+  });
+
+  // Guardar y continuar a la pantalla de búsqueda, sincronizando con la BD si hay usuario registrado
+  saveBtn?.addEventListener('click', () => {
+    localStorage.setItem('todomigob_categories', JSON.stringify(selected));
+
+    try {
+      const rawSub = localStorage.getItem('todomigob_notification_subscription');
+      if (rawSub) {
+        const sub = JSON.parse(rawSub);
+        if (sub && sub.email && selected.length > 0) {
+          sub.categories = [...selected];
+          sub.updatedAt = new Date().toISOString();
+          localStorage.setItem('todomigob_notification_subscription', JSON.stringify(sub));
+
+          const apiUrl = ((typeof window !== 'undefined' && window.PUBLIC_API_URL) || defaultApiUrl || 'https://trebol4devop.tail41b60f.ts.net').replace(/\/+$/, '');
+          fetch(`${apiUrl}/api/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: sub.name || sub.email.split('@')[0],
+              email: sub.email,
+              preferences: selected,
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        }
+      }
+    } catch (e) {}
+
+    window.location.href = '/buscar';
+  });
+
+  renderState();
+</script>
