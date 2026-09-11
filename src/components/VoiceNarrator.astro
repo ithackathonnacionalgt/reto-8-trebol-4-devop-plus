@@ -6,237 +6,100 @@ interface Props {
 const { lang = 'es' } = Astro.props;
 ---
 
-<!-- 1. Burbuja Flotante que aparece directamente al seleccionar texto -->
+<!-- 1. Botón Flotante de Selección (solo icono de altavoz, sin palabras) -->
 <div
   id="tts-selection-bubble"
-  class="fixed z-50 hidden items-center gap-1.5 px-3 py-2 bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 rounded-full shadow-2xl border border-white/20 dark:border-black/20 text-xs sm:text-sm font-bold select-none cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-150 hover:scale-105 active:scale-95 group"
+  class="fixed z-50 hidden items-center justify-center w-11 h-11 bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-full shadow-2xl border-2 border-[#4997D0] select-none cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-150 hover:scale-110 active:scale-95"
   style="top: -9999px; left: -9999px;"
-  role="tooltip"
-  aria-label="Escuchar selección en voz alta"
+  role="button"
+  aria-label="Escuchar"
 >
-  <!-- Icono bocina -->
-  <span class="text-base text-[#4997D0] dark:text-[#257ab7] group-hover:scale-110 transition-transform">🔊</span>
-  <span class="tracking-wide">Escuchar</span>
-  <span class="text-[10px] opacity-70 border-l border-white/30 dark:border-black/30 pl-1.5 hidden sm:inline">Voz en español</span>
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#4997D0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+  </svg>
 </div>
 
-<!-- 2. Barra y Botón Flotante Principal de Accesibilidad de Voz (Esquina Inferior Derecha) -->
+<!-- 2. Controles de Voz Flotantes (Solo Símbolos, sin menús complejos ni palabras) -->
 <aside
   id="tts-floating-widget"
-  class="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2.5 select-none print:hidden"
-  aria-label="Controles de Asistente de Voz y Lectura"
+  class="fixed bottom-5 right-5 z-40 flex items-center gap-2 select-none print:hidden"
+  aria-label="Lector de voz"
 >
-  <!-- Mini controles rápidos cuando la voz está activa/hablando -->
+  <!-- Controles mientras habla: Pausar / Continuar y Detener (solo símbolos) -->
   <div
     id="tts-active-controls"
-    class="hidden items-center gap-1.5 bg-white dark:bg-[#202020] p-1.5 px-2.5 rounded-full border-2 border-[#4997D0] shadow-xl text-neutral-800 dark:text-neutral-100 transition-all duration-200"
+    class="hidden items-center gap-1.5 bg-white dark:bg-[#202020] p-1.5 px-3 rounded-full border-2 border-[#4997D0] shadow-xl text-neutral-800 dark:text-neutral-100 transition-all duration-200"
   >
-    <!-- Ondas de voz animadas -->
-    <div class="flex items-center gap-0.5 px-1 text-[#4997D0]">
+    <!-- Ondas visuales animadas de sonido -->
+    <div class="flex items-center gap-0.5 px-1 text-[#4997D0]" aria-hidden="true">
       <span class="w-1 h-3 bg-[#4997D0] rounded-full animate-bounce [animation-delay:0ms]"></span>
-      <span class="w-1 h-4 bg-[#4997D0] rounded-full animate-bounce [animation-delay:150ms]"></span>
+      <span class="w-1 h-4.5 bg-[#4997D0] rounded-full animate-bounce [animation-delay:150ms]"></span>
       <span class="w-1 h-2 bg-[#4997D0] rounded-full animate-bounce [animation-delay:300ms]"></span>
     </div>
 
-    <!-- Botón Pausar/Continuar -->
+    <!-- Símbolo Pausar / Reanudar (Barras || / Triángulo >) -->
     <button
       id="tts-btn-pause-resume"
       type="button"
-      class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-sky-50 dark:hover:bg-neutral-700 text-[#4997D0] dark:text-sky-400 transition-colors cursor-pointer"
-      title="Pausar o reanudar lectura"
+      class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-sky-50 dark:hover:bg-neutral-800 text-[#4997D0] dark:text-sky-400 transition-colors cursor-pointer"
       aria-label="Pausar o reanudar"
     >
-      <svg id="tts-icon-pause" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <!-- Icono Pausar -->
+      <svg id="tts-icon-pause" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
       </svg>
-      <svg id="tts-icon-resume" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-        <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+      <!-- Icono Reanudar -->
+      <svg id="tts-icon-resume" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="6 4 20 12 6 20 6 4" />
       </svg>
     </button>
 
-    <!-- Botón Detener -->
+    <!-- Símbolo Detener (Cuadrado ■) -->
     <button
       id="tts-btn-stop"
       type="button"
-      class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 text-red-500 transition-colors cursor-pointer"
-      title="Detener lectura"
-      aria-label="Detener lectura"
+      class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/50 text-red-500 transition-colors cursor-pointer"
+      aria-label="Detener"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
         <rect x="5" y="5" width="14" height="14" rx="2" />
       </svg>
     </button>
   </div>
 
-  <!-- Botón Circular Principal del Narrador -->
+  <!-- Botón Principal: Activar / Desactivar Lectura por Toque (Solo Símbolo de Altavoz) -->
   <div class="relative">
-    <button
-      id="tts-toggle-panel-btn"
-      type="button"
-      class="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#4997D0] hover:bg-sky-600 text-white shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#4997D0]/40 group"
-      title="Asistente de Voz / Narrador (Lectura para aprender a escuchar y leer)"
-      aria-label="Abrir panel del narrador de voz"
-      aria-expanded="false"
-      aria-haspopup="dialog"
-    >
-      <!-- Ondas pulsantes cuando está hablando -->
-      <span
-        id="tts-pulse-ring"
-        class="hidden absolute inset-0 rounded-full bg-[#4997D0] animate-ping opacity-35 pointer-events-none"
-      ></span>
+    <!-- Ondas pulsantes de lectura activa -->
+    <span
+      id="tts-pulse-ring"
+      class="hidden absolute inset-0 rounded-full bg-[#4997D0] animate-ping opacity-35 pointer-events-none"
+      aria-hidden="true"
+    ></span>
 
-      <!-- Icono de altavoz / oreja -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+    <button
+      id="tts-main-btn"
+      type="button"
+      class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-[#202020] text-[#4997D0] border-3 border-[#4997D0] shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#4997D0]/40 group"
+      aria-label="Lector en voz alta"
+      aria-pressed="false"
+    >
+      <!-- Icono Altavoz Apagado / Encendido -->
+      <svg id="tts-main-icon" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
       </svg>
 
-      <!-- Badge cuando el modo "Tocar para escuchar" está activo -->
+      <!-- Indicador visual cuando el modo de lectura está encendido -->
       <span
-        id="tts-clickmode-badge"
-        class="hidden absolute -top-1 -right-1 w-4 h-4 bg-amber-400 border-2 border-white dark:border-[#202020] rounded-full"
-        title="Modo tocar para escuchar encendido"
+        id="tts-active-dot"
+        class="hidden absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-[#202020] rounded-full"
+        aria-hidden="true"
       ></span>
-    </button>
-  </div>
-
-  <!-- 3. Panel Flotante de Configuración y Asistencia de Voz -->
-  <div
-    id="tts-settings-panel"
-    class="hidden w-80 sm:w-92 bg-white dark:bg-[#1f1f1f] border-2 border-[#4997D0] text-neutral-900 dark:text-neutral-100 rounded-3xl shadow-2xl p-4 sm:p-5 flex-col gap-3.5 transition-all duration-200"
-    role="dialog"
-    aria-labelledby="tts-panel-title"
-  >
-    <!-- Encabezado del Panel -->
-    <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2.5">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-950 text-[#4997D0] flex items-center justify-center font-bold">
-          🔊
-        </div>
-        <div>
-          <h3 id="tts-panel-title" class="text-base font-bold leading-none text-neutral-900 dark:text-white">
-            Narrador de Voz
-          </h3>
-          <p class="text-xs text-[#4997D0] dark:text-sky-400 font-semibold mt-0.5">
-            Español / Lectura asistida
-          </p>
-        </div>
-      </div>
-
-      <button
-        id="tts-close-panel-btn"
-        type="button"
-        class="w-7 h-7 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-        aria-label="Cerrar panel del narrador"
-      >
-        ✕
-      </button>
-    </div>
-
-    <!-- Guía instructiva para personas que no saben leer pero escuchan -->
-    <div class="p-3 bg-sky-50 dark:bg-sky-950/40 rounded-2xl border border-[#4997D0]/30 text-xs sm:text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed flex items-start gap-2">
-      <span class="text-base">💡</span>
-      <p>
-        <strong>¿Cómo usarlo?</strong> Selecciona cualquier palabra o frase con tu ratón o dedo para que el narrador te la lea, o activa el <em>Modo Tocar para escuchar</em> abajo.
-      </p>
-    </div>
-
-    <!-- Opciones de Accesibilidad -->
-    <div class="space-y-2.5">
-      <!-- Switch 1: Modo Tocar para escuchar -->
-      <label class="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 hover:bg-sky-50/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
-        <div class="flex flex-col pr-2">
-          <span class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-            👉 Tocar para escuchar
-          </span>
-          <span class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
-            Toca cualquier texto, título o botón y lo escuchas al instante.
-          </span>
-        </div>
-        <input
-          id="tts-checkbox-clickmode"
-          type="checkbox"
-          class="w-5 h-5 accent-[#4997D0] cursor-pointer rounded"
-        />
-      </label>
-
-      <!-- Switch 2: Lectura automática al seleccionar -->
-      <label class="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 hover:bg-sky-50/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
-        <div class="flex flex-col pr-2">
-          <span class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-            ⚡ Narrar al seleccionar
-          </span>
-          <span class="text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
-            Habla automáticamente en cuanto sueltas el texto marcado.
-          </span>
-        </div>
-        <input
-          id="tts-checkbox-autoselect"
-          type="checkbox"
-          class="w-5 h-5 accent-[#4997D0] cursor-pointer rounded"
-        />
-      </label>
-    </div>
-
-    <!-- Control de Velocidad de Voz (Fundamental para entender gramática y dicción) -->
-    <div class="space-y-1.5">
-      <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider block">
-        Velocidad de pronunciación
-      </label>
-      <div class="grid grid-cols-3 gap-1.5" id="tts-speed-buttons">
-        <button
-          type="button"
-          data-speed="0.75"
-          class="tts-speed-btn py-1.5 px-2 text-xs font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#4997D0] cursor-pointer transition-all flex flex-col items-center"
-        >
-          <span>🐢 Pausada</span>
-          <span class="text-[10px] text-neutral-400 font-normal">Para aprender</span>
-        </button>
-        <button
-          type="button"
-          data-speed="0.95"
-          class="tts-speed-btn py-1.5 px-2 text-xs font-bold rounded-xl border-2 border-[#4997D0] bg-sky-50 dark:bg-sky-950 text-[#4997D0] dark:text-sky-300 cursor-pointer transition-all flex flex-col items-center"
-        >
-          <span>🚶 Normal</span>
-          <span class="text-[10px] text-[#4997D0]/70 font-normal">Recomendada</span>
-        </button>
-        <button
-          type="button"
-          data-speed="1.2"
-          class="tts-speed-btn py-1.5 px-2 text-xs font-bold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#4997D0] cursor-pointer transition-all flex flex-col items-center"
-        >
-          <span>🐇 Rápida</span>
-          <span class="text-[10px] text-neutral-400 font-normal">Fluida</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Selector de Voz en Español -->
-    <div class="space-y-1">
-      <label for="tts-voice-select" class="text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider block">
-        Voz en español detectada
-      </label>
-      <select
-        id="tts-voice-select"
-        class="w-full text-xs font-medium py-2 px-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:border-[#4997D0] focus:ring-1 focus:ring-[#4997D0] outline-none cursor-pointer"
-      >
-        <option value="">Cargando voces del dispositivo...</option>
-      </select>
-    </div>
-
-    <!-- Botón Probar Voz de Muestra -->
-    <button
-      id="tts-test-speech-btn"
-      type="button"
-      class="w-full py-2.5 px-4 bg-[#4997D0] hover:bg-sky-600 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer active:scale-98"
-    >
-      <span>🔊 Probar narrador</span>
     </button>
   </div>
 </aside>
 
-<!-- Estilo para el modo "Tocar para escuchar" y resaltado de lectura -->
+<!-- Estilo visual para resaltar lo que se está leyendo -->
 <style is:global>
-  /* Resaltado cuando un elemento está siendo leído por el narrador */
   .tts-highlight-reading {
     outline: 3px solid #4997D0 !important;
     outline-offset: 2px !important;
@@ -245,109 +108,49 @@ const { lang = 'es' } = Astro.props;
     transition: all 0.25s ease-in-out !important;
   }
 
-  /* Cursor especial cuando el modo 'Tocar para escuchar' está activo */
   body.tts-touch-mode-active {
-    cursor: help !important;
-  }
-  body.tts-touch-mode-active a,
-  body.tts-touch-mode-active button,
-  body.tts-touch-mode-active p,
-  body.tts-touch-mode-active h1,
-  body.tts-touch-mode-active h2,
-  body.tts-touch-mode-active h3,
-  body.tts-touch-mode-active span,
-  body.tts-touch-mode-active [data-title],
-  body.tts-touch-mode-active .result-card {
-    cursor: help !important;
+    cursor: pointer !important;
   }
 </style>
 
-<!-- Script de Integración Completa del Narrador Web Speech API -->
+<!-- Lógica Directa de Lectura en Voz Alta -->
 <script is:inline>
   (function () {
-    // Variables de estado interno del narrador
-    let synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
-    let spanishVoices = [];
+    const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
     let currentVoice = null;
-    let currentUtterance = null;
+    let isTouchToReadActive = false;
     let selectedTextBuffer = '';
 
-    // Preferencias del usuario
-    let currentRate = 0.95;
-    let autoSpeakOnSelect = false;
-    let clickToSpeakMode = false;
-    let savedVoiceName = null;
-
-    try {
-      const r = localStorage.getItem('todomigob_tts_rate');
-      if (r) currentRate = parseFloat(r);
-      const a = localStorage.getItem('todomigob_tts_autoselect');
-      if (a) autoSpeakOnSelect = a === 'true';
-      const c = localStorage.getItem('todomigob_tts_clickmode');
-      if (c) clickToSpeakMode = c === 'true';
-      savedVoiceName = localStorage.getItem('todomigob_tts_voice');
-    } catch (e) {}
-
-    // Referencias a los elementos del DOM
     const bubble = document.getElementById('tts-selection-bubble');
-    const panel = document.getElementById('tts-settings-panel');
-    const togglePanelBtn = document.getElementById('tts-toggle-panel-btn');
-    const closePanelBtn = document.getElementById('tts-close-panel-btn');
+    const mainBtn = document.getElementById('tts-main-btn');
+    const mainIcon = document.getElementById('tts-main-icon');
+    const activeDot = document.getElementById('tts-active-dot');
+    const pulseRing = document.getElementById('tts-pulse-ring');
     const activeControls = document.getElementById('tts-active-controls');
     const pauseResumeBtn = document.getElementById('tts-btn-pause-resume');
     const iconPause = document.getElementById('tts-icon-pause');
     const iconResume = document.getElementById('tts-icon-resume');
     const stopBtn = document.getElementById('tts-btn-stop');
-    const pulseRing = document.getElementById('tts-pulse-ring');
-    const clickModeBadge = document.getElementById('tts-clickmode-badge');
-    const checkClickMode = document.getElementById('tts-checkbox-clickmode');
-    const checkAutoSelect = document.getElementById('tts-checkbox-autoselect');
-    const voiceSelect = document.getElementById('tts-voice-select');
-    const speedButtons = document.querySelectorAll('.tts-speed-btn');
-    const testSpeechBtn = document.getElementById('tts-test-speech-btn');
 
-    // 1. Cargar y filtrar voces en español
+    // Cargar voces en español
     function loadVoices() {
       if (!synth) return;
       const all = synth.getVoices();
       if (!all || all.length === 0) return;
 
-      spanishVoices = all.filter((v) =>
+      const spanish = all.filter((v) =>
         v.lang.toLowerCase().startsWith('es') ||
         v.name.toLowerCase().includes('spanish') ||
         v.name.toLowerCase().includes('español')
       );
 
-      // Si no hay estrictamente en español, usar todas como respaldo
-      const pool = spanishVoices.length > 0 ? spanishVoices : all;
-
-      // Seleccionar voz guardada o por prioridad regional
-      if (savedVoiceName) {
-        currentVoice = pool.find((v) => v.name === savedVoiceName) || null;
-      }
-      if (!currentVoice) {
-        currentVoice =
-          pool.find((v) => v.lang.toLowerCase().includes('es-gt')) || // Guatemala
-          pool.find((v) => v.lang.toLowerCase().includes('es-419')) || // Latinoamérica
-          pool.find((v) => v.lang.toLowerCase().includes('es-mx')) || // México
-          pool.find((v) => v.name.toLowerCase().includes('natural') && v.lang.startsWith('es')) ||
-          pool.find((v) => v.name.toLowerCase().includes('google') && v.lang.startsWith('es')) ||
-          pool[0];
-      }
-
-      // Rellenar el selector si existe en el DOM
-      if (voiceSelect) {
-        voiceSelect.innerHTML = '';
-        pool.forEach((v) => {
-          const opt = document.createElement('option');
-          opt.value = v.name;
-          opt.textContent = `${v.name} (${v.lang})`;
-          if (currentVoice && v.name === currentVoice.name) {
-            opt.selected = true;
-          }
-          voiceSelect.appendChild(opt);
-        });
-      }
+      const pool = spanish.length > 0 ? spanish : all;
+      currentVoice =
+        pool.find((v) => v.lang.toLowerCase().includes('es-gt')) ||
+        pool.find((v) => v.lang.toLowerCase().includes('es-419')) ||
+        pool.find((v) => v.lang.toLowerCase().includes('es-mx')) ||
+        pool.find((v) => v.name.toLowerCase().includes('natural') && v.lang.startsWith('es')) ||
+        pool[0];
     }
 
     if (synth) {
@@ -357,7 +160,6 @@ const { lang = 'es' } = Astro.props;
       }
     }
 
-    // 2. Función de limpieza y acondicionamiento para dicción clara
     function cleanText(raw) {
       if (!raw) return '';
       return raw
@@ -368,33 +170,20 @@ const { lang = 'es' } = Astro.props;
         .trim();
     }
 
-    // 3. Función principal para hablar (TTS API)
     function speak(text, highlightElem = null) {
-      if (!synth) {
-        alert('Tu navegador no soporta síntesis de voz Web Speech API.');
-        return;
-      }
-
+      if (!synth) return;
       const prepared = cleanText(text);
       if (!prepared) return;
 
-      // Detener cualquier lectura previa
       stop();
 
       const utterance = new SpeechSynthesisUtterance(prepared);
-      currentUtterance = utterance;
-
-      if (!currentVoice) {
-        loadVoices();
-      }
-      if (currentVoice) {
-        utterance.voice = currentVoice;
-      }
+      if (!currentVoice) loadVoices();
+      if (currentVoice) utterance.voice = currentVoice;
       utterance.lang = currentVoice ? currentVoice.lang : 'es-GT';
-      utterance.rate = currentRate;
+      utterance.rate = 0.95;
       utterance.pitch = 1.0;
 
-      // Resaltado visual del elemento
       if (highlightElem) {
         document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
           el.classList.remove('tts-highlight-reading');
@@ -402,64 +191,45 @@ const { lang = 'es' } = Astro.props;
         highlightElem.classList.add('tts-highlight-reading');
       }
 
-      utterance.onstart = () => {
-        updateUiState(true, false);
-      };
-
+      utterance.onstart = () => updateState(true, false);
       utterance.onend = () => {
-        updateUiState(false, false);
-        if (highlightElem) {
-          highlightElem.classList.remove('tts-highlight-reading');
-        }
-        currentUtterance = null;
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
       };
-
       utterance.onerror = () => {
-        updateUiState(false, false);
-        if (highlightElem) {
-          highlightElem.classList.remove('tts-highlight-reading');
-        }
-        currentUtterance = null;
+        updateState(false, false);
+        if (highlightElem) highlightElem.classList.remove('tts-highlight-reading');
       };
-
-      utterance.onpause = () => {
-        updateUiState(false, true);
-      };
-
-      utterance.onresume = () => {
-        updateUiState(true, false);
-      };
+      utterance.onpause = () => updateState(false, true);
+      utterance.onresume = () => updateState(true, false);
 
       synth.cancel();
       synth.speak(utterance);
     }
 
     function stop() {
-      if (synth) {
-        synth.cancel();
-      }
-      updateUiState(false, false);
+      if (synth) synth.cancel();
+      updateState(false, false);
       document.querySelectorAll('.tts-highlight-reading').forEach((el) => {
         el.classList.remove('tts-highlight-reading');
       });
-      currentUtterance = null;
     }
 
     function pause() {
       if (synth && synth.speaking) {
         synth.pause();
-        updateUiState(false, true);
+        updateState(false, true);
       }
     }
 
     function resume() {
       if (synth && synth.paused) {
         synth.resume();
-        updateUiState(true, false);
+        updateState(true, false);
       }
     }
 
-    function updateUiState(isPlaying, isPaused) {
+    function updateState(isPlaying, isPaused) {
       if (isPlaying) {
         activeControls?.classList.remove('hidden');
         activeControls?.classList.add('flex');
@@ -481,182 +251,67 @@ const { lang = 'es' } = Astro.props;
       }
     }
 
-    // 4. Exponer API global window.VoiceNarrator para que cualquier componente la use
-    window.VoiceNarrator = {
-      speak: (text, elem) => speak(text, elem),
-      stop: () => stop(),
-      pause: () => pause(),
-      resume: () => resume(),
-      setRate: (r) => {
-        currentRate = r;
-        try { localStorage.setItem('todomigob_tts_rate', String(r)); } catch (e) {}
-      }
-    };
-
-    // 5. Manejo de Selección de Texto (Al seleccionar algo en pantalla)
-    function handleTextSelection(e) {
-      // Ignorar si el clic fue dentro del panel de configuración o controles
-      if (panel && panel.contains(e.target)) return;
-      if (activeControls && activeControls.contains(e.target)) return;
-      if (bubble && bubble.contains(e.target)) return;
-
-      const sel = window.getSelection();
-      const text = sel ? sel.toString().trim() : '';
-
-      if (!text || text.length < 1) {
-        hideSelectionBubble();
-        return;
-      }
-
-      selectedTextBuffer = text;
-
-      // Si está activa la opción de auto-hablar al seleccionar
-      if (autoSpeakOnSelect) {
-        speak(text);
-        hideSelectionBubble();
-        return;
-      }
-
-      // Calcular posición para mostrar la burbuja flotante
-      try {
-        const range = sel.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        if (rect && rect.width > 0) {
-          const posX = rect.left + rect.width / 2;
-          let posY = rect.top - 10;
-          // Si está muy arriba de la pantalla, mostrarla debajo
-          if (posY < 50) {
-            posY = rect.bottom + 45;
-          }
-
-          // Limitar posX para que la burbuja nunca se desborde fuera de la pantalla en móviles
-          const screenWidth = window.innerWidth;
-          const clampedX = Math.max(80, Math.min(screenWidth - 80, posX));
-
-          if (bubble) {
-            bubble.style.top = `${posY}px`;
-            bubble.style.left = `${clampedX}px`;
-            bubble.classList.remove('hidden');
-            bubble.classList.add('flex');
-          }
-        }
-      } catch (err) {
-        hideSelectionBubble();
-      }
-    }
-
-    function hideSelectionBubble() {
-      if (bubble) {
-        bubble.classList.add('hidden');
-        bubble.classList.remove('flex');
-      }
-    }
-
-    // Ocultar burbuja inmediatamente si se deselecciona el texto
-    document.addEventListener('selectionchange', () => {
-      const sel = window.getSelection();
-      if (!sel || !sel.toString().trim()) {
-        hideSelectionBubble();
-      }
-    });
-
-    // Eventos de selección
-    document.addEventListener('mouseup', handleTextSelection);
-    document.addEventListener('touchend', (e) => {
-      setTimeout(() => handleTextSelection(e), 100);
-    });
-    document.addEventListener('keyup', (e) => {
-      if (e.key === 'Shift' || e.key.startsWith('Arrow')) {
-        handleTextSelection(e);
-      }
-    });
-
-    // Clic en la burbuja de selección
-    bubble?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (selectedTextBuffer) {
-        speak(selectedTextBuffer);
-      }
-      hideSelectionBubble();
-    });
-
-    // 6. Modo "Tocar para escuchar" (Lectura interactiva al dar clic/toque)
-    function applyClickToSpeakMode(active) {
-      clickToSpeakMode = active;
-      try {
-        localStorage.setItem('todomigob_tts_clickmode', String(active));
-      } catch (e) {}
-
+    // Activar o desactivar el modo de tocar para escuchar
+    function setTouchToReadMode(active) {
+      isTouchToReadActive = active;
       if (active) {
         document.body.classList.add('tts-touch-mode-active');
-        clickModeBadge?.classList.remove('hidden');
-        if (checkClickMode) checkClickMode.checked = true;
+        mainBtn?.classList.remove('bg-white', 'dark:bg-[#202020]', 'text-[#4997D0]');
+        mainBtn?.classList.add('bg-[#4997D0]', 'text-white');
+        activeDot?.classList.remove('hidden');
+        mainBtn?.setAttribute('aria-pressed', 'true');
       } else {
         document.body.classList.remove('tts-touch-mode-active');
-        clickModeBadge?.classList.add('hidden');
-        if (checkClickMode) checkClickMode.checked = false;
+        mainBtn?.classList.remove('bg-[#4997D0]', 'text-white');
+        mainBtn?.classList.add('bg-white', 'dark:bg-[#202020]', 'text-[#4997D0]');
+        activeDot?.classList.add('hidden');
+        mainBtn?.setAttribute('aria-pressed', 'false');
+        stop();
       }
     }
 
-    // Inicializar estado del switch
-    if (checkClickMode) {
-      checkClickMode.checked = clickToSpeakMode;
-      applyClickToSpeakMode(clickToSpeakMode);
-      checkClickMode.addEventListener('change', (e) => {
-        applyClickToSpeakMode(e.target.checked);
-      });
-    }
+    // Clic en el botón principal: alternar lectura por toque
+    mainBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setTouchToReadMode(!isTouchToReadActive);
+    });
 
-    if (checkAutoSelect) {
-      checkAutoSelect.checked = autoSpeakOnSelect;
-      checkAutoSelect.addEventListener('change', (e) => {
-        autoSpeakOnSelect = e.target.checked;
-        try {
-          localStorage.setItem('todomigob_tts_autoselect', String(autoSpeakOnSelect));
-        } catch (err) {}
-      });
-    }
-
-    // Interceptar clics en el documento cuando el modo tocar para escuchar está activo
+    // Leer cualquier elemento al tocarlo en pantalla si el modo está encendido
     document.addEventListener(
       'click',
       (e) => {
-        if (!clickToSpeakMode) return;
+        if (!isTouchToReadActive) return;
 
-        // No interceptar clics dentro de los controles del narrador
+        // No interceptar clics sobre los botones del lector
         if (
-          (panel && panel.contains(e.target)) ||
-          (togglePanelBtn && togglePanelBtn.contains(e.target)) ||
+          (mainBtn && mainBtn.contains(e.target)) ||
           (activeControls && activeControls.contains(e.target)) ||
           (bubble && bubble.contains(e.target))
         ) {
           return;
         }
 
-        // Buscar el bloque de texto más representativo sobre el que se hizo clic
         const target = e.target;
-        const textElement =
-          target.closest('h1, h2, h3, h4, p, li, button, a, [data-title], .result-card') || target;
+        const textElem = target.closest('h1, h2, h3, h4, p, li, button, a, [data-title], .result-card') || target;
 
-        let contentToRead = '';
-        if (textElement.dataset && textElement.dataset.title) {
-          contentToRead = `${textElement.dataset.title}. ${textElement.dataset.summary || ''}`;
+        let content = '';
+        if (textElem.dataset && textElem.dataset.title) {
+          content = `${textElem.dataset.title}. ${textElem.dataset.summary || ''}`;
         } else {
-          contentToRead = textElement.innerText || textElement.textContent || '';
+          content = textElem.innerText || textElem.textContent || '';
         }
 
-        contentToRead = contentToRead.trim();
-        if (contentToRead.length > 0) {
+        content = content.trim();
+        if (content.length > 0) {
           e.preventDefault();
           e.stopPropagation();
-          speak(contentToRead, textElement);
+          speak(content, textElem);
         }
       },
-      true // Captura para asegurar que lea antes de redirigir si el modo está encendido
+      true
     );
 
-    // 7. Botones de Control Rápido (Pausa, Reanudar, Detener)
+    // Botones de control durante reproducción
     pauseResumeBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
       if (synth && synth.paused) {
@@ -671,95 +326,71 @@ const { lang = 'es' } = Astro.props;
       stop();
     });
 
-    // 8. Abrir/Cerrar Panel de Opciones
-    togglePanelBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isHidden = panel.classList.contains('hidden');
-      if (isHidden) {
-        panel.classList.remove('hidden');
-        panel.classList.add('flex');
-        togglePanelBtn.setAttribute('aria-expanded', 'true');
-      } else {
-        panel.classList.add('hidden');
-        panel.classList.remove('flex');
-        togglePanelBtn.setAttribute('aria-expanded', 'false');
+    // Burbuja flotante al seleccionar texto (solo símbolo)
+    function handleSelection(e) {
+      if (activeControls && activeControls.contains(e.target)) return;
+      if (bubble && bubble.contains(e.target)) return;
+
+      const sel = window.getSelection();
+      const text = sel ? sel.toString().trim() : '';
+
+      if (!text || text.length < 1) {
+        if (bubble) bubble.classList.add('hidden');
+        return;
       }
-    });
 
-    closePanelBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      panel.classList.add('hidden');
-      panel.classList.remove('flex');
-      togglePanelBtn.setAttribute('aria-expanded', 'false');
-    });
+      selectedTextBuffer = text;
 
-    // Cerrar panel al dar clic fuera o presionar Escape
-    document.addEventListener('click', (e) => {
-      if (panel && !panel.contains(e.target) && !togglePanelBtn.contains(e.target)) {
-        panel.classList.add('hidden');
-        panel.classList.remove('flex');
-        togglePanelBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
+      try {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect && rect.width > 0) {
+          const posX = rect.left + rect.width / 2;
+          let posY = rect.top - 10;
+          if (posY < 50) posY = rect.bottom + 45;
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        panel?.classList.add('hidden');
-        panel?.classList.remove('flex');
-        hideSelectionBubble();
-        stop();
-      }
-    });
+          const screenWidth = window.innerWidth;
+          const clampedX = Math.max(40, Math.min(screenWidth - 40, posX));
 
-    // 9. Selector de Velocidad
-    function updateSpeedUi(rate) {
-      speedButtons.forEach((btn) => {
-        const btnSpeed = parseFloat(btn.getAttribute('data-speed'));
-        if (Math.abs(btnSpeed - rate) < 0.08) {
-          btn.classList.add('border-2', 'border-[#4997D0]', 'bg-sky-50', 'dark:bg-sky-950', 'text-[#4997D0]', 'dark:text-sky-300');
-          btn.classList.remove('border-neutral-200', 'dark:border-neutral-700', 'bg-white', 'dark:bg-neutral-800');
-        } else {
-          btn.classList.remove('border-2', 'border-[#4997D0]', 'bg-sky-50', 'dark:bg-sky-950', 'text-[#4997D0]', 'dark:text-sky-300');
-          btn.classList.add('border', 'border-neutral-200', 'dark:border-neutral-700', 'bg-white', 'dark:bg-neutral-800');
+          if (bubble) {
+            bubble.style.top = `${posY}px`;
+            bubble.style.left = `${clampedX}px`;
+            bubble.classList.remove('hidden');
+            bubble.classList.add('flex');
+          }
         }
-      });
+      } catch (err) {
+        if (bubble) bubble.classList.add('hidden');
+      }
     }
 
-    updateSpeedUi(currentRate);
-
-    speedButtons.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const speed = parseFloat(btn.getAttribute('data-speed'));
-        currentRate = speed;
-        try {
-          localStorage.setItem('todomigob_tts_rate', String(speed));
-        } catch (err) {}
-        updateSpeedUi(speed);
-        speak(`Velocidad ajustada.`);
-      });
-    });
-
-    // 10. Cambio de Voz Manual
-    voiceSelect?.addEventListener('change', (e) => {
-      const selectedName = e.target.value;
-      const found = spanishVoices.find((v) => v.name === selectedName);
-      if (found) {
-        currentVoice = found;
-        savedVoiceName = found.name;
-        try {
-          localStorage.setItem('todomigob_tts_voice', found.name);
-        } catch (err) {}
-        speak(`Voz seleccionada: ${found.name}`);
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (!sel || !sel.toString().trim()) {
+        if (bubble) bubble.classList.add('hidden');
       }
     });
 
-    // 11. Botón Probar Voz
-    testSpeechBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      speak(
-        'Hola. Este es el narrador de voz en español de Todo Mi Gob. Te ayudo a escuchar cualquier palabra o frase que selecciones o toques en la pantalla.'
-      );
+    document.addEventListener('mouseup', handleSelection);
+    document.addEventListener('touchend', (e) => {
+      setTimeout(() => handleSelection(e), 100);
     });
+
+    bubble?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (selectedTextBuffer) {
+        speak(selectedTextBuffer);
+      }
+      if (bubble) bubble.classList.add('hidden');
+    });
+
+    // Exponer API global limpia
+    window.VoiceNarrator = {
+      speak: (text, elem) => speak(text, elem),
+      stop: () => stop(),
+      pause: () => pause(),
+      resume: () => resume(),
+    };
   })();
 </script>

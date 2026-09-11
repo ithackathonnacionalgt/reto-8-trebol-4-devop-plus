@@ -1,11 +1,13 @@
 ---
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import { getNoticiasData } from '../services/noticias';
+import { getApiBaseUrl } from '../services/api';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const noticiasData = await getNoticiasData();
 const rawCategories = noticiasData.availableCategories || [];
+const defaultApiUrl = getApiBaseUrl();
 ---
 
 <!-- Modal Accesible de Notificaciones por Correo -->
@@ -67,7 +69,8 @@ const rawCategories = noticiasData.availableCategories || [];
           <p class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
             {t('notif.active.desc')}
           </p>
-          <p id="notif-active-email" class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white mt-1 break-all"></p>
+          <p id="notif-active-name" class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white mt-1"></p>
+          <p id="notif-active-email" class="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium break-all"></p>
 
           <div class="mt-3 pt-3 border-t border-[#4997D0]/20">
             <p class="text-xs sm:text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">
@@ -98,6 +101,20 @@ const rawCategories = noticiasData.availableCategories || [];
       <!-- ESTADO B: Formulario de Registro / Modificación -->
       <form id="notif-form" class="space-y-4" novalidate>
         
+        <!-- Campo Nombre Completo -->
+        <div>
+          <label for="notif-input-name" class="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
+            {t('notif.input.name')} <span class="text-[#4997D0]">*</span>
+          </label>
+          <input
+            id="notif-input-name"
+            type="text"
+            required
+            placeholder={t('notif.input.name.placeholder')}
+            class="w-full px-4 py-2.5 text-base rounded-xl border-2 border-neutral-300 dark:border-neutral-700 focus:border-[#4997D0] focus:ring-2 focus:ring-[#4997D0]/30 outline-none bg-white dark:bg-[#171717] text-neutral-900 dark:text-white transition-colors placeholder:text-neutral-400"
+          />
+        </div>
+
         <!-- Campo Correo Electrónico -->
         <div>
           <label for="notif-input-email" class="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
@@ -108,7 +125,7 @@ const rawCategories = noticiasData.availableCategories || [];
             type="email"
             required
             placeholder={t('notif.input.placeholder')}
-            class="w-full px-4 py-3 text-base sm:text-lg rounded-xl border-2 border-neutral-300 dark:border-neutral-700 focus:border-[#4997D0] focus:ring-2 focus:ring-[#4997D0]/30 outline-none bg-white dark:bg-[#171717] text-neutral-900 dark:text-white transition-colors placeholder:text-neutral-400"
+            class="w-full px-4 py-2.5 text-base sm:text-lg rounded-xl border-2 border-neutral-300 dark:border-neutral-700 focus:border-[#4997D0] focus:ring-2 focus:ring-[#4997D0]/30 outline-none bg-white dark:bg-[#171717] text-neutral-900 dark:text-white transition-colors placeholder:text-neutral-400"
           />
         </div>
 
@@ -139,7 +156,7 @@ const rawCategories = noticiasData.availableCategories || [];
                 <button
                   type="button"
                   data-category-id={cat.id}
-                  class="notif-category-pill text-left px-3.5 py-3 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 hover:border-[#4997D0] text-sm sm:text-base font-semibold transition-all cursor-pointer flex items-center justify-between gap-2"
+                  class="notif-category-pill text-left px-3.5 py-2.5 rounded-xl border-2 border-neutral-200 dark:border-neutral-700 hover:border-[#4997D0] text-sm sm:text-base font-semibold transition-all cursor-pointer flex items-center justify-between gap-2"
                 >
                   <span class="truncate">{name}</span>
                   <span class="pill-check w-5 h-5 rounded-full border border-neutral-300 dark:border-neutral-600 flex items-center justify-center text-white shrink-0">
@@ -159,11 +176,11 @@ const rawCategories = noticiasData.availableCategories || [];
             {t('notif.frequency.label')}
           </label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
+            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
               <input type="radio" name="notif-freq" value="instant" checked class="w-4 h-4 text-[#4997D0] focus:ring-[#4997D0]" />
               <span>{t('notif.frequency.instant')}</span>
             </label>
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
+            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 cursor-pointer text-sm font-medium hover:border-[#4997D0]">
               <input type="radio" name="notif-freq" value="weekly" class="w-4 h-4 text-[#4997D0] focus:ring-[#4997D0]" />
               <span>{t('notif.frequency.weekly')}</span>
             </label>
@@ -198,17 +215,18 @@ const rawCategories = noticiasData.availableCategories || [];
   </div>
 </div>
 
-<!-- Lógica del Modal y Sincronización Local / Mock -->
-<script is:inline define:vars={{ lang, rawCategories }}>
+<!-- Lógica del Modal y Conexión Directa en Segundo Plano -->
+<script is:inline define:vars={{ lang, rawCategories, defaultApiUrl }}>
   const STORAGE_KEY = 'todomigob_notification_subscription';
   const PREFERENCES_KEY = 'todomigob_categories';
 
-  // Textos según idioma
+  // Textos limpios para el usuario
   const MSG = {
     es: {
-      success: 'Te has suscrito exitosamente a las alertas de TODOMIGOB.',
+      success: 'Te has suscrito exitosamente a las alertas.',
       cancelled: 'Has cancelado tu suscripción a notificaciones.',
       invalidEmail: 'Por favor ingresa un correo electrónico válido.',
+      invalidName: 'Por favor ingresa tu nombre completo.',
       noCategories: 'Selecciona al menos una categoría de interés.',
       saving: 'Guardando...',
       subscribe: 'Suscribirme a las alertas',
@@ -217,9 +235,10 @@ const rawCategories = noticiasData.availableCategories || [];
       deselectAll: 'Deseleccionar todas',
     },
     kch: {
-      success: 'Xatz\'ib\'aj ab\'i\' ruk\' utzil. Kape na taq le ub\'ixik.',
+      success: 'Xatz\'ib\'aj ab\'i\' ruk\' utzil.',
       cancelled: 'Xaq\'atej le uya\'ik ab\'i\'.',
       invalidEmail: 'Chatz\'ib\'aj jun kematz\'ib\' che utz.',
+      invalidName: 'Chatz\'ib\'aj awb\'i\' tz\'aqat.',
       noCategories: 'Cha\' k\'ate\' jun uwach patan.',
       saving: 'Kuyuk...',
       subscribe: 'Uya\'ik ib\' pa le ub\'ixik',
@@ -236,10 +255,12 @@ const rawCategories = noticiasData.availableCategories || [];
   const alertBox = document.getElementById('notif-alert');
   const activeView = document.getElementById('notif-active-view');
   const formView = document.getElementById('notif-form');
+  const nameInput = document.getElementById('notif-input-name');
   const emailInput = document.getElementById('notif-input-email');
   const submitBtn = document.getElementById('notif-submit-btn');
   const submitBtnText = document.getElementById('notif-submit-btn-text');
   const submitSpinner = document.getElementById('notif-submit-spinner');
+  const activeNameEl = document.getElementById('notif-active-name');
   const activeEmailEl = document.getElementById('notif-active-email');
   const activeCatsList = document.getElementById('notif-active-categories-list');
   const editBtn = document.getElementById('notif-btn-edit');
@@ -248,6 +269,13 @@ const rawCategories = noticiasData.availableCategories || [];
 
   const categoryPills = Array.from(document.querySelectorAll('.notif-category-pill'));
   let selectedCategoryIds = new Set();
+
+  function getApiUrl() {
+    if (typeof window !== 'undefined' && window.PUBLIC_API_URL) {
+      return window.PUBLIC_API_URL.replace(/\/+$/, '');
+    }
+    return (defaultApiUrl || 'http://localhost:8080').replace(/\/+$/, '');
+  }
 
   function getSavedSubscription() {
     try {
@@ -275,7 +303,12 @@ const rawCategories = noticiasData.availableCategories || [];
   function showAlert(msg, isError = false) {
     if (!alertBox) return;
     alertBox.textContent = msg;
-    alertBox.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800', 'dark:bg-emerald-950/40', 'dark:text-emerald-300', 'dark:border-emerald-800');
+    alertBox.classList.remove(
+      'hidden',
+      'bg-red-50', 'text-red-700', 'border-red-200', 'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800',
+      'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'dark:bg-emerald-950/40', 'dark:text-emerald-300', 'dark:border-emerald-800'
+    );
+
     if (isError) {
       alertBox.classList.add('bg-red-50', 'text-red-700', 'border-red-200', 'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800');
     } else {
@@ -333,9 +366,9 @@ const rawCategories = noticiasData.availableCategories || [];
     const sub = getSavedSubscription();
 
     if (sub && sub.active) {
-      // Mostrar vista de suscripción activa
       if (activeView) activeView.classList.remove('hidden');
       if (formView) formView.classList.add('hidden');
+      if (activeNameEl) activeNameEl.textContent = sub.name || '';
       if (activeEmailEl) activeEmailEl.textContent = sub.email;
 
       if (activeCatsList) {
@@ -348,11 +381,9 @@ const rawCategories = noticiasData.availableCategories || [];
         });
       }
     } else {
-      // Mostrar formulario de nueva suscripción
       if (activeView) activeView.classList.add('hidden');
       if (formView) formView.classList.remove('hidden');
 
-      // Pre-llenar categorías con las preferencias del usuario o todas
       const preferred = getPreferredCategories();
       selectedCategoryIds.clear();
       if (preferred.length > 0) {
@@ -364,12 +395,10 @@ const rawCategories = noticiasData.availableCategories || [];
       if (submitBtnText) submitBtnText.textContent = MSG.subscribe;
     }
 
-    // Sincronizar indicador de notificación en toda la interfaz
     syncActiveBadge(Boolean(sub && sub.active));
   }
 
   function syncActiveBadge(isActive) {
-    // Badges en cabecera o botones
     const badges = document.querySelectorAll('#notification-active-badge, .js-notif-active-indicator');
     badges.forEach(badge => {
       badge.classList.toggle('hidden', !isActive);
@@ -395,7 +424,6 @@ const rawCategories = noticiasData.availableCategories || [];
     document.body.style.overflow = '';
   }
 
-  // Event Listeners
   categoryPills.forEach(pill => {
     pill.addEventListener('click', () => {
       const catId = pill.getAttribute('data-category-id');
@@ -427,7 +455,8 @@ const rawCategories = noticiasData.availableCategories || [];
     if (formView) formView.classList.remove('hidden');
 
     if (sub) {
-      if (emailInput) emailInput.value = sub.email;
+      if (nameInput) nameInput.value = sub.name || '';
+      if (emailInput) emailInput.value = sub.email || '';
       selectedCategoryIds = new Set(sub.categories);
       updatePillStyles();
       const freqRadio = formView.querySelector(`input[name="notif-freq"][value="${sub.frequency}"]`);
@@ -449,8 +478,15 @@ const rawCategories = noticiasData.availableCategories || [];
     e.preventDefault();
     hideAlert();
 
+    const name = (nameInput ? nameInput.value : '').trim();
     const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name) {
+      showAlert(MSG.invalidName, true);
+      nameInput?.focus();
+      return;
+    }
 
     if (!email || !emailRegex.test(email)) {
       showAlert(MSG.invalidEmail, true);
@@ -466,31 +502,58 @@ const rawCategories = noticiasData.availableCategories || [];
     const freqInput = formView.querySelector('input[name="notif-freq"]:checked');
     const frequency = freqInput ? freqInput.value : 'instant';
 
-    // Estado cargando (simula conexión a backend)
     if (submitBtn) submitBtn.disabled = true;
     if (submitBtnText) submitBtnText.textContent = MSG.saving;
     if (submitSpinner) submitSpinner.classList.remove('hidden');
 
-    await new Promise(resolve => setTimeout(resolve, 400));
+    const categoriesArray = Array.from(selectedCategoryIds);
+    const apiUrl = getApiUrl();
+    let syncedWithDb = false;
+
+    // Conexión directa a la Base de Datos en segundo plano (POST /api/users)
+    try {
+      const dbRes = await fetch(`${apiUrl}/api/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          preferences: categoriesArray
+        })
+      });
+      if (dbRes.ok) {
+        syncedWithDb = true;
+      }
+    } catch (netErr) {
+      // Fallback silencioso en segundo plano
+    }
 
     const subscription = {
+      name,
       email,
-      categories: Array.from(selectedCategoryIds),
+      categories: categoriesArray,
       frequency,
       active: true,
+      syncedWithDb,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(subscription));
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(categoriesArray));
       window.dispatchEvent(new CustomEvent('todomigob:subscription-changed', { detail: subscription }));
+
       showAlert(MSG.success, false);
+
       setTimeout(() => {
         renderView();
       }, 1000);
     } catch (err) {
-      showAlert('Error local al guardar', true);
+      showAlert(err.message, true);
     } finally {
       if (submitBtn) submitBtn.disabled = false;
       if (submitBtnText) submitBtnText.textContent = MSG.subscribe;
@@ -511,10 +574,8 @@ const rawCategories = noticiasData.availableCategories || [];
     }
   });
 
-  // Exponer función de apertura globalmente para botones
   window.openNotificationModal = openModal;
 
-  // Enganchar todos los botones con clase js-open-notifications o id
   function setupOpenButtons() {
     const buttons = document.querySelectorAll('.js-open-notifications, #notification-toggle-btn, #btn-open-notifications');
     buttons.forEach(btn => {

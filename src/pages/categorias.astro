@@ -143,9 +143,34 @@ const categorias = noticiasData.availableCategories || [];
     });
   });
 
-  // Guardar y continuar a la pantalla de búsqueda
+  // Guardar y continuar a la pantalla de búsqueda, sincronizando con la BD si hay usuario registrado
   saveBtn?.addEventListener('click', () => {
     localStorage.setItem('todomigob_categories', JSON.stringify(selected));
+
+    try {
+      const rawSub = localStorage.getItem('todomigob_notification_subscription');
+      if (rawSub) {
+        const sub = JSON.parse(rawSub);
+        if (sub && sub.email && selected.length > 0) {
+          sub.categories = [...selected];
+          sub.updatedAt = new Date().toISOString();
+          localStorage.setItem('todomigob_notification_subscription', JSON.stringify(sub));
+
+          const apiUrl = ((typeof window !== 'undefined' && window.PUBLIC_API_URL) || 'http://localhost:8080').replace(/\/+$/, '');
+          fetch(`${apiUrl}/api/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: sub.name || sub.email.split('@')[0],
+              email: sub.email,
+              preferences: selected,
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        }
+      }
+    } catch (e) {}
+
     window.location.href = '/buscar';
   });
 
