@@ -61,7 +61,7 @@ class TodoMiGobMailer:
         if is_urgent:
             urgent_banner = """
             <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
-                <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 14px;">⚠️ ALERTA IMPORTANTE - INFORMACIÓN PRIORITARIA</p>
+                <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 14px;">ALERTA IMPORTANTE - INFORMACIÓN PRIORITARIA</p>
             </div>
             """
 
@@ -79,7 +79,7 @@ class TodoMiGobMailer:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title} - TODOMIGOB</title>
+    <title>{title} - TODOMIGOBGT</title>
 </head>
 <body style="margin: 0; padding: 20px; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -103,7 +103,7 @@ class TodoMiGobMailer:
                     <!-- Encabezado Oficial -->
                     <tr>
                         <td style="padding: 24px 30px; background-color: #ffffff; border-bottom: 1px solid #e5e7eb; text-align: center;">
-                            <h1 style="margin: 0; font-size: 24px; color: #0f172a; letter-spacing: 0.5px;">TODOMIGOB</h1>
+                            <h1 style="margin: 0; font-size: 24px; color: #0f172a; letter-spacing: 0.5px;">TODOMIGOBGT</h1>
                             <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 500;">
                                 Portal de Noticias y Servicios Oficiales de Guatemala
                             </p>
@@ -117,7 +117,7 @@ class TodoMiGobMailer:
 
                             <!-- Distintivo de categoría -->
                             <div style="display: inline-block; padding: 4px 12px; background-color: #e0f2fe; color: #0369a1; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 16px;">
-                                🏷️ {category_name}
+                                {category_name}
                             </div>
 
                             <p style="margin: 0 0 16px 0; font-size: 15px; color: #475569;">
@@ -150,11 +150,8 @@ class TodoMiGobMailer:
                     <!-- Pie de página Institucional -->
                     <tr>
                         <td style="padding: 20px 30px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
-                                Recibiste esta notificación porque estás suscrito a la categoría <strong>{category_name}</strong> en TODOMIGOB.
-                            </p>
-                            <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-                                TODOMIGOB · Desplegado en Raspberry Pi 4 · Este es un sitio oficial del gobierno
+                            <p style="margin: 0; font-size: 12px; color: #64748b;">
+                                Recibiste esta notificación porque estás suscrito a la categoría <strong>{category_name}</strong> en TODOMIGOBGT.
                             </p>
                         </td>
                     </tr>
@@ -174,7 +171,7 @@ class TodoMiGobMailer:
         action = content_es.get("citizenAction", news.get("citizenAction", ""))
         url = news.get("originalUrl", "https://todomigob.gob.gt")
 
-        text = f"TODOMIGOB - {category_name.upper()}\n"
+        text = f"TODOMIGOBGT - {category_name.upper()}\n"
         text += "=" * 40 + "\n\n"
         text += f"Estimado/a {user_name},\n\n"
         text += f"NOTICIA: {title}\n\n"
@@ -182,7 +179,7 @@ class TodoMiGobMailer:
         if action:
             text += f"¿QUÉ DEBES HACER?:\n{action}\n\n"
         text += f"Más detalles en: {url}\n\n"
-        text += "---\nTODOMIGOB Alertas Ciudadanas\n"
+        text += "---\nTODOMIGOBGT Alertas Ciudadanas\n"
         return text
 
     def send_notification(self, to_email: str, user_name: str, news: Dict[str, Any]) -> bool:
@@ -193,9 +190,9 @@ class TodoMiGobMailer:
         category_id = news.get("categoryId", "procedures_services")
         category_name = CATEGORY_NAMES.get(category_id, "Información Oficial")
         content_es = news.get("content", {}).get("es", {})
-        title = content_es.get("title", news.get("title", "Nueva notificación de TODOMIGOB"))
+        title = content_es.get("title", news.get("title", "Nueva notificación de TODOMIGOBGT"))
 
-        subject = f"[TODOMIGOB] {category_name}: {title}"
+        subject = f"[TODOMIGOBGT] {category_name}: {title}"
         html_body = self.render_news_html(user_name, news, category_name)
         text_body = self.render_news_text(user_name, news, category_name)
 
