@@ -379,7 +379,7 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
         body_bytes = self.rfile.read(content_length) if content_length > 0 else b"{}"
         
         try:
-            body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
+            body = json.loads(body_bytes.decode("utf-8"), strict=False) if body_bytes else {}
         except Exception:
             self._send_json(400, {"error": "El cuerpo de la solicitud no es un JSON válido"})
             return
