@@ -73,16 +73,16 @@ const categorias = rawCategorias;
         </div>
 
         <!-- Bloque de texto descriptivo y acción ciudadana (tipografía ampliada para personas con baja visión) -->
-        <div class="mt-5 text-base sm:text-base text-neutral-800 dark:text-neutral-200 leading-relaxed text-left space-y-4">
-          <p id="detail-content" class="text-base sm:text-base leading-relaxed">
+        <div class="mt-5 text-neutral-800 dark:text-neutral-200 leading-relaxed text-left space-y-4">
+          <p id="detail-content" class="text-lg sm:text-xl leading-relaxed">
             {defaultSummary}
           </p>
           {defaultAction && (
             <div id="detail-action-container" class="p-4 rounded-xl border-2 border-[#4997D0]/40 bg-sky-50/50 dark:bg-neutral-800/60">
-              <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#4997D0] dark:text-sky-300 mb-1.5">
+              <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-[#4997D0] dark:text-sky-300 mb-1.5">
                 Acción Ciudadana / Qué hacer
               </h2>
-              <p id="detail-action" class="text-sm sm:text-base text-neutral-900 dark:text-neutral-100 leading-relaxed font-medium">
+              <p id="detail-action" class="text-base sm:text-lg text-neutral-900 dark:text-neutral-100 leading-relaxed font-medium">
                 {defaultAction}
               </p>
             </div>
