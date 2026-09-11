@@ -31,6 +31,8 @@ def main():
     add_parser.add_argument("--email", required=True, help="Correo electrónico")
     add_parser.add_argument("--categories", required=True, help="Categorías separadas por coma (ej. health_wellbeing,education_scholarships)")
     add_parser.add_argument("--update", action="store_true", help="Permitir actualizar preferencias si el usuario ya existe")
+    add_parser.add_argument("--send-welcome", action="store_true", default=True, help="Enviar correo de bienvenida con noticias desde Cloudflare R2")
+    add_parser.add_argument("--no-welcome", dest="send_welcome", action="store_false", help="No enviar correo de bienvenida al registrar")
 
     # Comando: list-users
     subparsers.add_parser("list-users", help="Listar todos los usuarios y sus preferencias")
@@ -39,8 +41,13 @@ def main():
     subparsers.add_parser("list-categories", help="Listar las categorías oficiales disponibles")
 
     # Comando: test-email
-    test_parser = subparsers.add_parser("test-email", help="Enviar un correo de prueba vía SMTP Gmail")
+    test_parser = subparsers.add_parser("test-email", help="Enviar un correo de prueba simple vía SMTP Gmail")
     test_parser.add_argument("--to", required=True, help="Correo destinatario")
+
+    # Comando: test-welcome-email
+    welcome_parser = subparsers.add_parser("test-welcome-email", help="Enviar correo de bienvenida de prueba consultando noticias en Cloudflare R2")
+    welcome_parser.add_argument("--to", required=True, help="Correo destinatario")
+    welcome_parser.add_argument("--name", default="Ciudadano", help="Nombre del destinatario")
 
     # Comando: dispatch
     dispatch_parser = subparsers.add_parser("dispatch", help="Procesar un archivo JSON de noticias y enviar notificaciones")
@@ -69,6 +76,20 @@ def main():
             print(f"   Nombre: {user['name']}")
             print(f"   Correo: {user['email']}")
             print(f"   Preferencias activadas ({len(user['preferences'])}): {', '.join(user['preferences'])}")
+
+            if user.get("is_new") and args.send_welcome:
+                print(f"📧 Consultando bucket Cloudflare R2 y despachando correo de bienvenida a {user['email']}...")
+                try:
+                    category_news = mailer.get_one_news_per_category()
+                    mailer.send_welcome_email(user["email"], user["name"], category_news)
+                    db.log_notification(user["id"], "welcome_email", "all_categories", "SENT")
+                    print(f"✅ ¡Correo de bienvenida enviado exitosamente ({len(category_news)} noticias de cada categoría incluidas)!")
+                except Exception as mail_err:
+                    print(f"⚠️ Advertencia al enviar correo de bienvenida: {mail_err}")
+                    try:
+                        db.log_notification(user["id"], "welcome_email", "all_categories", "FAILED", str(mail_err))
+                    except Exception:
+                        pass
         except Exception as e:
             print(f"❌ Error al registrar usuario: {e}")
             sys.exit(1)
@@ -113,6 +134,21 @@ def main():
             print(f"✅ ¡Correo enviado exitosamente a {args.to}!")
         except Exception as e:
             print(f"❌ Error al enviar correo: {e}")
+            sys.exit(1)
+
+    elif args.command == "test-welcome-email":
+        print(f"🌐 Consultando noticias en bucket Cloudflare R2...")
+        try:
+            category_news = mailer.get_one_news_per_category()
+            print(f"📰 Noticias preparadas para {len(category_news)} categorías.")
+            for c in category_news:
+                c_title = c.get("news", {}).get("content", {}).get("es", {}).get("title") or c.get("news", {}).get("title", "")
+                print(f"   • [{c['category_name']}]: {c_title[:50]}...")
+            print(f"📧 Enviando correo de bienvenida oficial a {args.to}...")
+            mailer.send_welcome_email(args.to, args.name, category_news)
+            print(f"✅ ¡Correo de bienvenida enviado exitosamente a {args.to}!")
+        except Exception as e:
+            print(f"❌ Error al enviar correo de bienvenida: {e}")
             sys.exit(1)
 
     elif args.command == "dispatch":

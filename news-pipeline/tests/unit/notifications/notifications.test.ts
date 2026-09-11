@@ -3,7 +3,12 @@ import { rm } from "node:fs/promises";
 import { JsonFileUserDatabase } from "../../../src/notifications/database.js";
 import { MockEmailTransport } from "../../../src/notifications/emailTransport.js";
 import { NotificationDispatcher } from "../../../src/notifications/notificationDispatcher.js";
-import { renderNewsHtml, renderNewsText } from "../../../src/notifications/emailTemplate.js";
+import {
+  renderNewsHtml,
+  renderNewsText,
+  renderWelcomeHtml,
+  renderWelcomeText,
+} from "../../../src/notifications/emailTemplate.js";
 import type { NewsItem } from "../../../src/domain/news.js";
 
 const TEST_DB_PATH = "./output/test-notifications-db.json";
@@ -189,5 +194,33 @@ describe("NotificationDispatcher", () => {
     expect(res2.sentCount).toBe(0);
     expect(res2.alreadyNotifiedCount).toBe(1);
     expect(transport.sentMessages).toHaveLength(1); // No aumentó
+  });
+
+  it("renders welcome html and text with one news item per category", () => {
+    const categoryNewsList = [
+      {
+        categoryId: "health_wellbeing",
+        news: sampleNews,
+      },
+      {
+        categoryId: "education_scholarships",
+        news: sampleNewsEducation,
+      },
+    ];
+
+    const html = renderWelcomeHtml("Ana Gómez", categoryNewsList);
+    expect(html).toContain("Ana Gómez");
+    expect(html).toContain("TODOMIGOBGT");
+    expect(html).toContain("Salud y Prevención");
+    expect(html).toContain("Educación y Becas");
+    expect(html).toContain("Jornada Nacional de Vacunación");
+    expect(html).toContain("Convocatoria de Becas Universitarias");
+    expect(html).toContain("https://todomigobgt.carlosdelcidramirez.workers.dev/buscar/");
+
+    const text = renderWelcomeText("Ana Gómez", categoryNewsList);
+    expect(text).toContain("Ana Gómez");
+    expect(text).toContain("SALUD Y PREVENCIÓN");
+    expect(text).toContain("EDUCACIÓN Y BECAS");
+    expect(text).toContain("Jornada Nacional de Vacunación");
   });
 });

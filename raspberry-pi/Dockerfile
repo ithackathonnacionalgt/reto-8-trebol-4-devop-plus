@@ -10,7 +10,7 @@ RUN addgroup -S todomigob && adduser -S todomigob -G todomigob
 WORKDIR /app
 
 # Copiar archivos del servicio
-COPY database.py mailer.py dispatcher.py server.py manage.py ./
+COPY database.py mailer.py dispatcher.py server.py manage.py noticias_todas_categorias.json ./
 
 # Crear directorio de base de datos
 RUN mkdir -p /app/data

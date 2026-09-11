@@ -136,6 +136,8 @@ class TodoMiGobDB:
             cursor.execute("SELECT id, name, is_active FROM users WHERE email = ? COLLATE NOCASE;", (email,))
             existing = cursor.fetchone()
 
+            is_new = existing is None
+
             if existing:
                 if not allow_update:
                     raise ValueError(f"El correo electrónico '{email}' ya se encuentra registrado en el sistema. No se permiten correos duplicados.")
@@ -174,7 +176,8 @@ class TodoMiGobDB:
                 "email": email,
                 "is_active": True,
                 "preferences": valid_preferences,
-                "updated_at": now
+                "updated_at": now,
+                "is_new": is_new
             }
 
     def get_users_by_category(self, category_id: str) -> List[Dict[str, Any]]:
