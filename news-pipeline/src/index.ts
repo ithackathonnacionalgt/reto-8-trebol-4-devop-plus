@@ -12,6 +12,8 @@ import { MintrabNewsSource } from "./sources/providers/ministries/mintrabSource.
 import { MspasNewsSource } from "./sources/providers/ministries/mspasSource.js";
 import { MingobNewsSource } from "./sources/providers/ministries/mingobSource.js";
 import { InsivumehNewsSource } from "./sources/providers/ministries/insivumehSource.js";
+import { MineducNewsSource } from "./sources/providers/ministries/mineducSource.js";
+import { MarnNewsSource } from "./sources/providers/ministries/marnSource.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
 import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
@@ -78,6 +80,8 @@ function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig
       fetchOptions,
       maxCandidates: config.scraper.maxCandidates,
     }),
+    new MineducNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new MarnNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
   ];
 }
 
