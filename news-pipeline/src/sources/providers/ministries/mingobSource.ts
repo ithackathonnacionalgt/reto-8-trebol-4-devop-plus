@@ -43,7 +43,27 @@ export class MingobNewsSource implements NewsSource {
     if (candidates.length === 0) {
       throw new SourceError("La página de MINGOB no contiene noticias reconocibles");
     }
-    return candidates;
+    const enriched: NewsCandidate[] = [];
+    for (const candidate of candidates) {
+      enriched.push(await this.enrichCandidate(candidate));
+    }
+    return enriched;
+  }
+
+  private async enrichCandidate(candidate: NewsCandidate): Promise<NewsCandidate> {
+    try {
+      const html = await fetchPage(this.client, candidate.originalUrl, this.options.fetchOptions);
+      const content = extractArticleContent(html, candidate.rawTitle);
+      const imageUrl = extractMetaImage(html, candidate.originalUrl);
+      const enriched = { ...candidate };
+      if (content.length > candidate.rawContent.length) enriched.rawContent = content;
+      if (imageUrl !== undefined) enriched.imageUrl = imageUrl;
+      const publishedAt = extractArticleDate(html);
+      if (publishedAt !== undefined) enriched.publishedAt = publishedAt;
+      return enriched;
+    } catch {
+      return candidate;
+    }
   }
 }
 
@@ -103,6 +123,33 @@ function extractImageUrl(context: string, articleUrl: string): string | undefine
   } catch {
     return undefined;
   }
+}
+
+function extractArticleContent(html: string, title: string | undefined): string {
+  const paragraphs = [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p\s*>/gi)]
+    .map((match) => (match[1] === undefined ? "" : extractText(match[1])))
+    .filter((text) => text.length >= 30 && text !== title);
+  return paragraphs.slice(0, 30).join("\n\n").slice(0, 12000);
+}
+
+function extractMetaImage(html: string, articleUrl: string): string | undefined {
+  const match =
+    /<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*content=["']([^"']+)["'][^>]*>/i.exec(
+      html,
+    );
+  if (match?.[1] === undefined) return undefined;
+  try {
+    return normalizeUrl(new URL(match[1], articleUrl).toString());
+  } catch {
+    return undefined;
+  }
+}
+
+function extractArticleDate(html: string): string | undefined {
+  const match = /<time\b[^>]*datetime=["']([^"']+)["']/i.exec(html);
+  if (match?.[1] === undefined) return undefined;
+  const date = new Date(match[1]);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
 function parseSpanishDate(text: string): string | undefined {
