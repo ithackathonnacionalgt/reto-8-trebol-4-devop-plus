@@ -1,0 +1,9 @@
+{
+  "relevant": true,
+  "data": {
+    "categoryId": "new_category",
+    "tags": [],
+    "urgent": "no",
+    "content": { "es": {}, "quc": {} }
+  }
+}
