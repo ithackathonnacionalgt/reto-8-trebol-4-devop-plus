@@ -1,0 +1,6 @@
+dist/
+node_modules/
+coverage/
+output/
+pnpm-lock.yaml
+estructura-pipeline-noticias.md
