@@ -2,6 +2,9 @@ version: "3.8"
 
 services:
   todomigob-notifications:
+    # Si se define DOCKER_IMAGE en .env (ej. miusuario/todomigob-service:latest), la descargará de Docker Hub.
+    # Si no se define, se compilará localmente con el Dockerfile.
+    image: ${DOCKER_IMAGE:-todomigob-service:latest}
     build:
       context: .
       dockerfile: Dockerfile

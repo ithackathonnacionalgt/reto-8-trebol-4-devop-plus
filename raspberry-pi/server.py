@@ -9,8 +9,9 @@ import json
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
+from typing import Any, Dict, List, Optional
 from database import TodoMiGobDB
-from mailer import TodoMiGobMailer
+from mailer import TodoMiGobMailer, DEFAULT_APP_NAME
 from dispatcher import NotificationDispatcher
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -447,13 +448,13 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
 def run():
     server_address = (HOST, PORT)
     httpd = HTTPServer(server_address, TodoMiGobRequestHandler)
-    print(f"===========================================================")
-    print(f"🇬🇹 Servidor TODOMIGOB iniciado para Raspberry Pi 4")
-    print(f"📍 Interfaz Web: http://localhost:{PORT} (o la IP de tu Raspi)")
-    print(f"📂 Base de Datos: {os.path.abspath(DB_PATH)}")
-    print(f"📧 SMTP Host: {mailer.smtp_host}:{mailer.smtp_port}")
-    print(f"🔑 SMTP App: {DEFAULT_APP_NAME}")
-    print(f"===========================================================")
+    print("===========================================================")
+    print("[TODOMIGOB] Servidor iniciado para Raspberry Pi 4")
+    print(f"[HTTP] Interfaz Web: http://localhost:{PORT} (o la IP de tu Raspi)")
+    print(f"[DB]   Base de Datos: {os.path.abspath(DB_PATH)}")
+    print(f"[SMTP] Host: {mailer.smtp_host}:{mailer.smtp_port}")
+    print(f"[SMTP] App: {DEFAULT_APP_NAME}")
+    print("===========================================================")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

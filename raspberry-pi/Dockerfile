@@ -12,10 +12,8 @@ WORKDIR /app
 # Copiar archivos del servicio
 COPY database.py mailer.py dispatcher.py server.py manage.py ./
 
-# Crear directorio de base de datos y asignar permisos
-RUN mkdir -p /app/data && chown -R todomigob:todomigob /app
-
-USER todomigob
+# Crear directorio de base de datos
+RUN mkdir -p /app/data
 
 ENV HOST=0.0.0.0
 ENV PORT=8080
