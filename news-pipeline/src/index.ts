@@ -11,6 +11,7 @@ import { ConredNewsSource } from "./sources/providers/ministries/conredSource.js
 import { MintrabNewsSource } from "./sources/providers/ministries/mintrabSource.js";
 import { MspasNewsSource } from "./sources/providers/ministries/mspasSource.js";
 import { MingobNewsSource } from "./sources/providers/ministries/mingobSource.js";
+import { InsivumehNewsSource } from "./sources/providers/ministries/insivumehSource.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
 import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
@@ -70,6 +71,10 @@ function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig
       maxCandidates: config.scraper.maxCandidates,
     }),
     new MingobNewsSource(client, {
+      fetchOptions,
+      maxCandidates: config.scraper.maxCandidates,
+    }),
+    new InsivumehNewsSource(client, {
       fetchOptions,
       maxCandidates: config.scraper.maxCandidates,
     }),
