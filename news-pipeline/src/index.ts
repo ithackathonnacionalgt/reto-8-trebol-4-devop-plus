@@ -17,6 +17,7 @@ import { MarnNewsSource } from "./sources/providers/ministries/marnSource.js";
 import { IgssNewsSource } from "./sources/providers/ministries/igssSource.js";
 import { CivNewsSource } from "./sources/providers/ministries/civSource.js";
 import { SatNewsSource } from "./sources/providers/ministries/satSource.js";
+import { MagaNewsSource, MidesNewsSource, InabNewsSource, ConadiNewsSource, PdhNewsSource } from "./sources/providers/ministries/additionalSources.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
 import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
@@ -88,6 +89,11 @@ function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig
     new IgssNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
     new CivNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
     new SatNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new MagaNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new MidesNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new InabNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new ConadiNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
+    new PdhNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
   ];
 }
 
