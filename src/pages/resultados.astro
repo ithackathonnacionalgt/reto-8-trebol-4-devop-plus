@@ -54,6 +54,7 @@ const noticias = noticiasData.news || [];
           const tags = item.tags || item.etiquetas || [];
           const source = item.source || item.fuente || '';
           const isUrgent = item.urgent !== undefined ? item.urgent : (item.urgente || false);
+          const itemImage = item.imageUrl || item.imagenUrl || '';
           return (
             <a
               href={currentSearch ? `${detailBaseUrl}?id=${item.id}&q=${encodeURIComponent(currentSearch)}` : `${detailBaseUrl}?id=${item.id}`}
@@ -70,7 +71,7 @@ const noticias = noticiasData.news || [];
               data-raw-summary={summary}
               class="result-card block p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:border-[#4997D0] dark:hover:border-[#4997D0] hover:bg-sky-50/50 dark:hover:bg-neutral-800/60 transition-colors group cursor-pointer"
             >
-              <div class="flex items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center justify-between gap-2 mb-2">
                 <span class="text-xs sm:text-sm font-bold text-[#4997D0] dark:text-sky-400">
                   {catName}
                 </span>
@@ -92,12 +93,28 @@ const noticias = noticiasData.news || [];
                   </button>
                 </div>
               </div>
-              <h2 class="result-title text-lg sm:text-xl font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
-                {title}
-              </h2>
-              <p class="result-summary text-sm sm:text-base text-neutral-700 dark:text-neutral-300 mt-1.5 leading-relaxed line-clamp-3 sm:line-clamp-2">
-                {summary}
-              </p>
+
+              <div class="flex gap-3 sm:gap-4 items-start">
+                <div class="flex-1 min-w-0">
+                  <h2 class="result-title text-lg sm:text-xl font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
+                    {title}
+                  </h2>
+                  <p class="result-summary text-sm sm:text-base text-neutral-700 dark:text-neutral-300 mt-1.5 leading-relaxed line-clamp-3 sm:line-clamp-2">
+                    {summary}
+                  </p>
+                </div>
+                {itemImage && (
+                  <div class="card-image-container shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-sky-50/40 dark:bg-neutral-800">
+                    <img
+                      src={itemImage}
+                      alt={title}
+                      loading="lazy"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onerror="this.parentElement.style.display='none'"
+                    />
+                  </div>
+                )}
+              </div>
             </a>
           );
         })}
@@ -153,6 +170,7 @@ const noticias = noticiasData.news || [];
           const title = item.content?.es?.title || item.contenido?.es?.titulo || '';
           const summary = item.content?.es?.summary || item.contenido?.es?.resumen || '';
           const tags = item.tags || item.etiquetas || [];
+          const itemImage = item.imageUrl || item.imagenUrl || '';
           return (
             <a
               href={currentSearch ? `${detailBaseUrl}?id=${item.id}&q=${encodeURIComponent(currentSearch)}` : `${detailBaseUrl}?id=${item.id}`}
@@ -183,12 +201,28 @@ const noticias = noticiasData.news || [];
                   </span>
                 </div>
               </div>
-              <h4 class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
-                {title}
-              </h4>
-              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1 line-clamp-2 leading-relaxed">
-                {summary}
-              </p>
+
+              <div class="flex gap-3 items-start">
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#4997D0] transition-colors leading-snug">
+                    {title}
+                  </h4>
+                  <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1 line-clamp-2 leading-relaxed">
+                    {summary}
+                  </p>
+                </div>
+                {itemImage && (
+                  <div class="card-image-container shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-sky-50/40 dark:bg-neutral-800">
+                    <img
+                      src={itemImage}
+                      alt={title}
+                      loading="lazy"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onerror="this.parentElement.style.display='none'"
+                    />
+                  </div>
+                )}
+              </div>
             </a>
           );
         })}

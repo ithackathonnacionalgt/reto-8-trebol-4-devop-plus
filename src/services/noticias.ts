@@ -11,6 +11,7 @@ export interface NoticiaContenido {
 export interface NoticiaItem {
   id: string;
   originalUrl: string;
+  imageUrl?: string;
   source: string;
   sourceType: string;
   categoryId: string;
@@ -25,6 +26,7 @@ export interface NoticiaItem {
   };
   // Fallbacks de compatibilidad
   urlOriginal?: string;
+  imagenUrl?: string;
   fuente?: string;
   tipoFuente?: string;
   categoriaId?: string;
@@ -110,9 +112,12 @@ export function normalizeNoticiasData(raw: any): NoticiasData {
       accionCiudadana: contentQuc.accionCiudadana || contentQuc.citizenAction || esContenido.accionCiudadana
     };
 
+    const imageUrl = item.imageUrl || item.imagenUrl || item.urlImagen || item.image || item.imagen || undefined;
+
     return {
       id: item.id,
       originalUrl: item.originalUrl || item.urlOriginal || '',
+      imageUrl: imageUrl,
       source: item.source || item.fuente || '',
       sourceType: item.sourceType || item.tipoFuente || '',
       categoryId: item.categoryId || item.categoriaId || '',
@@ -127,6 +132,7 @@ export function normalizeNoticiasData(raw: any): NoticiasData {
       },
       // Compatibilidad
       urlOriginal: item.originalUrl || item.urlOriginal || '',
+      imagenUrl: imageUrl,
       fuente: item.source || item.fuente || '',
       tipoFuente: item.sourceType || item.tipoFuente || '',
       categoriaId: item.categoryId || item.categoriaId || '',

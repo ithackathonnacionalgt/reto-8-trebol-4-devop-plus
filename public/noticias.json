@@ -1,36 +1,30 @@
 {
-  "lastUpdatedAt": "2026-09-10T21:48:42.584Z",
-  "totalNews": 2,
+  "lastUpdatedAt": "2026-09-11T04:08:08.117Z",
+  "totalNews": 3,
   "availableCategories": [
     {
       "id": "education_scholarships",
-      "name": "Educación y Becas",
-      "nameKch": "Tijonem xuquje' Tob'anem"
+      "name": "Educación y Becas"
     },
     {
       "id": "health_wellbeing",
-      "name": "Salud y Prevención",
-      "nameKch": "Raxnaqil xuquje' Chajinik"
+      "name": "Salud y Prevención"
     },
     {
       "id": "social_programs",
-      "name": "Apoyo Social",
-      "nameKch": "Tob'anem Tinamit"
+      "name": "Apoyo Social"
     },
     {
       "id": "procedures_services",
-      "name": "Trámites y Documentos",
-      "nameKch": "Wujil xuquje' Patan"
+      "name": "Trámites y Documentos"
     },
     {
       "id": "security_alerts",
-      "name": "Alertas y Emergencias",
-      "nameKch": "K'ulb'ilal xuquje' K'ulmatajem"
+      "name": "Alertas y Emergencias"
     },
     {
       "id": "employment_development",
-      "name": "Empleo y Emprendimiento",
-      "nameKch": "Chak xuquje' K'aslemal"
+      "name": "Empleo y Emprendimiento"
     }
   ],
   "news": [
@@ -57,6 +51,34 @@
           "title": "SEGEPLAN xuk'ut ri 25 Feria Nacional de Becas 2026",
           "summary": "Ri Secretaría de Planificación y Programación de la Presidencia (SEGEPLAN) xub'an ri 25 edición rech Feria Nacional de Becas 2026, ruk' lema 'Transformando sueños en oportunidades', rech xk'utik ri toq'ob' rech tijonik chuqa' ri apoyo educativo.",
           "citizenAction": "Chatz'eta' ri toq'ob' rech tijonik e k'o, ri requisitos chuqa' ri q'ij rech postulación pa ri canales oficiales rech SEGEPLAN o chatb'e pa ri feria."
+        }
+      }
+    },
+    {
+      "id": "agn-ministro-de-gobernacion-atribuye-hallazgo-de-cuerpos-en-la-via-publica-a-violencia-entre-pandillas",
+      "originalUrl": "https://agn.gt/ministro-de-gobernacion-atribuye-hallazgo-de-cuerpos-en-la-via-publica-a-violencia-entre-pandillas",
+      "imageUrl": "https://agn.gt/wp-content/uploads/2026/09/6f2f14e9-4fd4-426a-8a7a-7c4c7b2d62f1-350x250.webp",
+      "source": "AGN",
+      "sourceType": "news",
+      "categoryId": "security_alerts",
+      "tags": [
+        "seguridad",
+        "pandillas",
+        "violencia"
+      ],
+      "publishedAt": "2026-09-10T00:00:00.000Z",
+      "extractedAt": "2026-09-11T04:07:12.995Z",
+      "urgent": false,
+      "content": {
+        "es": {
+          "title": "Ministro de Gobernación atribuye hallazgo de cuerpos en la vía pública a violencia entre pandillas",
+          "summary": "El ministro de Gobernación, Marco Antonio Villeda, relacionó el hallazgo de personas fallecidas en la vía pública con la violencia entre pandillas. La información es preliminar y no se han detallado los casos.",
+          "citizenAction": "Mantente alerta, evita zonas con reportes de violencia y reporta cualquier hecho sospechoso o emergencia a la Policía Nacional Civil (110) o a los servicios de emergencia (122). Sigue la información oficial."
+        },
+        "quc": {
+          "title": "Ri Ministro de Gobernación xub'ij chi ri ch'akul t'aq'ij pa b'e are k'axk'olil chikojol pandillas",
+          "summary": "Ri Ministro de Gobernación, Marco Antonio Villeda, xub'ij chi ri kik'owem chik ch'akul pa b'e are k'axk'olil chikojol pandillas. Re tzij are nab'ey; man xib'in ta chi rij ri casos.",
+          "citizenAction": "Chato' awib'. Man c'o ta pa k'axk'olil. Chab'ij ri k'axk'olil chuwach Policía Nacional Civil (110) o chuwach servicios de emergencia (122). Chasik'ij ri tzij pa k'olib'al oficial."
         }
       }
     },
