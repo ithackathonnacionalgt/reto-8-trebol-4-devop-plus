@@ -69,9 +69,10 @@ export interface DispatchNewsPayload {
 }
 
 /**
- * URL base predeterminada para desarrollo y despliegue
+ * URL base predeterminada para desarrollo y despliegue (Tailscale Funnel / Nodo Raspberry Pi)
  */
-export const DEFAULT_API_BASE_URL = 'http://localhost:8080';
+export const DEFAULT_API_BASE_URL = 'https://trebol4devop.tail41b60f.ts.net';
+export const TAILSCALE_DIRECT_API_URL = 'http://100.101.158.66:8081';
 
 /**
  * Obtiene la URL base configurada para la base de datos y la API.
@@ -110,20 +111,42 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const baseUrl = getApiBaseUrl();
-  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${baseUrl}${path}`;
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...(options.headers || {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...(options.headers || {}),
+      },
+    });
+  } catch (fetchErr) {
+    // Si la URL principal de Funnel falla (ej. pendiente de aprobación), intentar fallback directo por Tailscale IP
+    if (baseUrl !== TAILSCALE_DIRECT_API_URL) {
+      try {
+        const fallbackUrl = `${TAILSCALE_DIRECT_API_URL}${path}`;
+        response = await fetch(fallbackUrl, {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...(options.headers || {}),
+          },
+        });
+      } catch {
+        throw fetchErr;
+      }
+    } else {
+      throw fetchErr;
+    }
+  }
 
   if (!response.ok) {
     let errorMsg = `Error ${response.status}: ${response.statusText}`;
