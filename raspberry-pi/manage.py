@@ -26,10 +26,11 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Comandos disponibles")
 
     # Comando: add-user
-    add_parser = subparsers.add_parser("add-user", help="Registrar o actualizar un usuario con sus preferencias")
+    add_parser = subparsers.add_parser("add-user", help="Registrar un usuario (no permite correos repetidos a menos de usar --update)")
     add_parser.add_argument("--name", required=True, help="Nombre del ciudadano")
     add_parser.add_argument("--email", required=True, help="Correo electrónico")
     add_parser.add_argument("--categories", required=True, help="Categorías separadas por coma (ej. health_wellbeing,education_scholarships)")
+    add_parser.add_argument("--update", action="store_true", help="Permitir actualizar preferencias si el usuario ya existe")
 
     # Comando: list-users
     subparsers.add_parser("list-users", help="Listar todos los usuarios y sus preferencias")
@@ -61,8 +62,9 @@ def main():
     if args.command == "add-user":
         cats = [c.strip() for c in args.categories.split(",") if c.strip()]
         try:
-            user = db.register_user(args.name, args.email, cats)
-            print(f"✅ Usuario registrado/actualizado exitosamente:")
+            user = db.register_user(args.name, args.email, cats, allow_update=args.update)
+            action_desc = "actualizado" if args.update else "registrado"
+            print(f"✅ Usuario {action_desc} exitosamente:")
             print(f"   ID: #{user['id']}")
             print(f"   Nombre: {user['name']}")
             print(f"   Correo: {user['email']}")

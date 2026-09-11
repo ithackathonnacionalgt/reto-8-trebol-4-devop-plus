@@ -388,13 +388,14 @@ class TodoMiGobRequestHandler(BaseHTTPRequestHandler):
             name = body.get("name")
             email = body.get("email")
             preferences = body.get("preferences", [])
+            allow_update = bool(body.get("allow_update", False))
 
             if not name or not email:
                 self._send_json(400, {"error": "Los campos 'name' y 'email' son obligatorios."})
                 return
 
             try:
-                user = db.register_user(name, email, preferences)
+                user = db.register_user(name, email, preferences, allow_update=allow_update)
                 self._send_json(201, user)
             except Exception as e:
                 self._send_json(400, {"error": str(e)})

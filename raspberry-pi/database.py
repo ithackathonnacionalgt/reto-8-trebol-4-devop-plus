@@ -6,8 +6,9 @@ Optimizado para Raspberry Pi 4 (bajo consumo de memoria, archivo único, WAL mod
 import sqlite3
 import os
 import json
+from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Generator
 
 # Categorías oficiales TODOMIGOB alineadas con el pipeline de noticias
 DEFAULT_CATEGORIES = [
@@ -31,13 +32,17 @@ class TodoMiGobDB:
             os.makedirs(dir_name, exist_ok=True)
         self.init_db()
 
-    def get_connection(self) -> sqlite3.Connection:
+    @contextmanager
+    def get_connection(self) -> Generator[sqlite3.Connection, None, None]:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         # Activar claves foráneas y WAL para máxima concurrencia y velocidad en Raspberry Pi
         conn.execute("PRAGMA foreign_keys = ON;")
         conn.execute("PRAGMA journal_mode = WAL;")
-        return conn
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def init_db(self):
         """Crea las tablas necesarias e inicializa las categorías oficiales si no existen."""
@@ -93,8 +98,9 @@ class TodoMiGobDB:
             );
             """)
 
-            # Índices para búsquedas ultra-rápidas en Raspberry Pi
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
+            # Índices para búsquedas ultra-rápidas en Raspberry Pi y garantía estricta de no correos duplicados
+            cursor.execute("DROP INDEX IF EXISTS idx_users_email;")
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email COLLATE NOCASE);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_preferences_category ON user_preferences(category_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_notification_logs_user_news ON notification_logs(user_id, news_id);")
 
@@ -108,10 +114,11 @@ class TodoMiGobDB:
 
             conn.commit()
 
-    def register_user(self, name: str, email: str, preferences: List[str]) -> Dict[str, Any]:
+    def register_user(self, name: str, email: str, preferences: List[str], allow_update: bool = False) -> Dict[str, Any]:
         """
-        Registra un usuario nuevo o actualiza sus preferencias si ya existe.
-        `preferences`: lista de IDs de categoría (ej. ['health_wellbeing', 'education_scholarships'])
+        Registra un usuario nuevo garantizando que no existan correos repetidos.
+        Si el correo ya existe y `allow_update=False`, lanza ValueError bloqueando el registro duplicado.
+        Si `allow_update=True`, actualiza las preferencias del usuario existente.
         """
         email = email.strip().lower()
         name = name.strip()
@@ -125,18 +132,26 @@ class TodoMiGobDB:
         with self.get_connection() as conn:
             cursor = conn.cursor()
 
-            # Insertar o actualizar usuario
-            cursor.execute("""
-            INSERT INTO users (name, email, is_active, created_at, updated_at)
-            VALUES (?, ?, 1, ?, ?)
-            ON CONFLICT(email) DO UPDATE SET
-                name = excluded.name,
-                is_active = 1,
-                updated_at = excluded.updated_at
-            RETURNING id, name, email, is_active, created_at, updated_at;
-            """, (name, email, now, now))
-            user_row = cursor.fetchone()
-            user_id = user_row["id"]
+            # Verificar si ya existe un usuario con este correo (insensible a mayúsculas)
+            cursor.execute("SELECT id, name, is_active FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+            existing = cursor.fetchone()
+
+            if existing:
+                if not allow_update:
+                    raise ValueError(f"El correo electrónico '{email}' ya se encuentra registrado en el sistema. No se permiten correos duplicados.")
+                user_id = existing["id"]
+                cursor.execute("""
+                UPDATE users SET name = ?, is_active = 1, updated_at = ? WHERE id = ?;
+                """, (name, now, user_id))
+            else:
+                try:
+                    cursor.execute("""
+                    INSERT INTO users (name, email, is_active, created_at, updated_at)
+                    VALUES (?, ?, 1, ?, ?);
+                    """, (name, email, now, now))
+                    user_id = cursor.lastrowid
+                except sqlite3.IntegrityError as e:
+                    raise ValueError(f"Restricción de unicidad violada: el correo '{email}' ya se encuentra registrado en la base de datos.") from e
 
             # Actualizar preferencias: limpiamos anteriores e insertamos las nuevas válidas
             cursor.execute("DELETE FROM user_preferences WHERE user_id = ?;", (user_id,))
@@ -155,9 +170,9 @@ class TodoMiGobDB:
 
             return {
                 "id": user_id,
-                "name": user_row["name"],
-                "email": user_row["email"],
-                "is_active": bool(user_row["is_active"]),
+                "name": name,
+                "email": email,
+                "is_active": True,
                 "preferences": valid_preferences,
                 "updated_at": now
             }
