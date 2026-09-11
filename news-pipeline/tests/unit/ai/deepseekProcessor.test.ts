@@ -76,7 +76,9 @@ describe("DeepSeekProcessor", () => {
       vi.fn().mockResolvedValue(undefined),
     );
 
-    await expect(processor.process(candidate)).rejects.toThrow("La IA devolvió una estructura inválida");
+    await expect(processor.process(candidate)).rejects.toThrow(
+      "La IA devolvió una estructura inválida",
+    );
     expect(fetchImplementation).toHaveBeenCalledOnce();
   });
 

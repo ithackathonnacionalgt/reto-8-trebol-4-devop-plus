@@ -7,6 +7,9 @@ import { runPipeline, type PipelineDependencies } from "./app/runPipeline.js";
 import { AgnNewsSource } from "./sources/providers/agnSource.js";
 import { MockNewsSource } from "./sources/providers/mockSource.js";
 import { SegeplanNewsSource } from "./sources/providers/segeplanSource.js";
+import { ConredNewsSource } from "./sources/providers/ministries/conredSource.js";
+import { MintrabNewsSource } from "./sources/providers/ministries/mintrabSource.js";
+import { MspasNewsSource } from "./sources/providers/ministries/mspasSource.js";
 import { SourceRegistry } from "./sources/sourceRegistry.js";
 import { NativeHttpClient } from "./scraping/httpClient.js";
 import { LocalNewsStorage } from "./storage/localNewsStorage.js";
@@ -50,6 +53,18 @@ function createProductionSources(config: ReturnType<typeof loadEnvironmentConfig
   return [
     new AgnNewsSource(client, { fetchOptions, maxCandidates: config.scraper.maxCandidates }),
     new SegeplanNewsSource(client, {
+      fetchOptions,
+      maxCandidates: config.scraper.maxCandidates,
+    }),
+    new ConredNewsSource(client, {
+      fetchOptions,
+      maxCandidates: config.scraper.maxCandidates,
+    }),
+    new MintrabNewsSource(client, {
+      fetchOptions,
+      maxCandidates: config.scraper.maxCandidates,
+    }),
+    new MspasNewsSource(client, {
       fetchOptions,
       maxCandidates: config.scraper.maxCandidates,
     }),
